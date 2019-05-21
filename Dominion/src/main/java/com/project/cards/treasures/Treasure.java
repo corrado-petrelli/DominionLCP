@@ -1,20 +1,22 @@
-package com.sample;
+package com.project.cards.treasures;
+
+import com.project.cards.Card;
 
 public class Treasure extends Card {
 
-	private byte value;
+	private int value;
 	
-	protected Treasure(String name, byte cost, byte value) {
+	public Treasure(String name, int cost, int value) {
 		super(name, "Treasure", null, cost);
 	}
 
-	public byte getValue() {
+	public int getValue() {
 		return value;
 	}
 	
 	
 	
-	@Override
+	
 	public String toString() {
 		return "Treasure [value=" + value + ", name=" + name + ", type=" + type + ", subtype=" + subtype + ", cost="
 				+ cost + "]";
