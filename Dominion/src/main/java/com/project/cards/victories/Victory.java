@@ -2,7 +2,7 @@ package com.project.cards.victories;
 
 import com.project.cards.Card;
 
-public class Victory extends Card {
+public abstract class Victory extends Card {
 	
 	/**
 	 * For value: the point of the winning

@@ -2,7 +2,7 @@ package com.project.cards.treasures;
 
 import com.project.cards.Card;
 
-public class Treasure extends Card {
+public abstract class Treasure extends Card {
 
 	private int value;
 	
