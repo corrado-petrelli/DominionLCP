@@ -1,7 +1,5 @@
 .metadata/*
-Dominion/src/main/resources/logback-test.xml
 RemoteSystemsTempFiles/*
-Dominion/src/main/resources/META-INF/*
 .recommenders/*
 
 
