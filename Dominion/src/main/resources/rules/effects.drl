@@ -1,0 +1,16 @@
+package com.sample
+ 
+ 
+rule "Draw card effect"
+	when
+		Player( $us : username, $deck : deck, $hand : hand )
+		Action( target == $us )
+	then
+		$drawn_card = $deck.getCard()
+		$hand.appendCard($drawn_card)
+end
+
+Card.doEffect(draw_card)( 
+
+	ksession.firerule(draw_card)
+)
