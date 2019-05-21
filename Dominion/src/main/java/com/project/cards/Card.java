@@ -1,12 +1,12 @@
-package com.sample;
+package com.project.cards;
 
 public abstract class Card {
 	protected String name;
 	protected String type;
 	protected String subtype;
-	protected byte cost;
+	protected int cost;
 	
-	protected Card(String name, String type, String subtype, byte cost) {
+	protected Card(String name, String type, String subtype, int cost) {
 		super();
 		this.name = name;
 		this.type = type;
@@ -23,7 +23,7 @@ public abstract class Card {
 	public String getSubtype() {
 		return subtype;
 	}
-	public byte getCost() {
+	public int getCost() {
 		return cost;
 	}
 	

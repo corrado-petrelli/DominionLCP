@@ -1,11 +1,21 @@
-package com.sample;
+package com.project;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
+
+import com.project.cards.Card;
+import com.project.cards.curses.Curse;
+import com.project.cards.treasures.Copper;
+import com.project.cards.treasures.Gold;
+import com.project.cards.treasures.Silver;
+import com.project.cards.victories.Duchy;
+import com.project.cards.victories.Estate;
+import com.project.cards.victories.Province;
 
 /**
  * This is a sample class to launch a rule.
@@ -45,14 +55,22 @@ public class DroolsTest {
              * TODO: You must insert the kingdom cards!
              */
         	
-        	int count = 0;
+        	int count = 0;        	
+        	System.out.println("Total: "+count);
         	for (Card card : deck){
 				System.out.println(card);
         		++count;
         	}
-        	System.out.println("Total: "+count);
-			
+
+        	Player corrado = new Player("Corrado");
+        	Player vincenzo = new Player("Vincenzo");
+        	Player fulvio = new Player("Fulvio");
+        	
+        	//Collections.shuffle(deck);
+        	
         	kSession.fireAllRules();
+        	
+        	
         } catch (Throwable t) {
             t.printStackTrace();
         }

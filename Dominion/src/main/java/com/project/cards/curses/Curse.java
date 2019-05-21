@@ -1,19 +1,21 @@
-package com.sample;
+package com.project.cards.curses;
+
+import com.project.cards.Card;
 
 public class Curse extends Card {
 
 	private byte value;
-	protected Curse() {
-		super("Curse", "Curse", null, (byte) 0);
+	public Curse() {
+		super("Curse", "Curse", null,0);
 		this.value = -1;
 	}
-	public byte getValue() {
+	public int getValue() {
 		return value;
 	}
 	
 	
 
-	@Override
+	
 	public String toString() {
 		return "Curse [value=" + value + ", name=" + name + ", type=" + type + ", subtype=" + subtype + ", cost=" + cost
 				+ "]";

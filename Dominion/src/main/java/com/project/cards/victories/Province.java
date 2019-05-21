@@ -1,9 +1,9 @@
-package com.sample;
+package com.project.cards.victories;
 
 public class Province extends Victory {
 
-	protected Province() {
-		super("Province", (byte)8, (byte)6);
+	public Province() {
+		super("Province", 8, 6);
 	}
 
 }

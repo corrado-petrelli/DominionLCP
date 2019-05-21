@@ -1,7 +1,9 @@
-package com.sample;
+package com.project;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.project.cards.Card;
 
 public class Player {
 	private List<Card> deck;

@@ -1,11 +1,10 @@
-package com.sample;
+package com.project.cards.kingdoms;
 
-public class Kingdom extends Card{
+import com.project.cards.Card;
 
-	protected Kingdom(String name, String subtype, byte cost) {
+public abstract class Kingdom extends Card{
+
+	public Kingdom(String name, String subtype, int cost) {
 		super(name, "Kingdom", subtype, cost);
-		// TODO Auto-generated constructor stub
 	}
-
-	
 }

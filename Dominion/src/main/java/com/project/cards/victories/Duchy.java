@@ -1,10 +1,10 @@
-package com.sample;
+package com.project.cards.victories;
 
 public class Duchy extends Victory{
 
-	protected Duchy() {
-		super("Duchy", (byte)5, (byte)3);
-		// TODO Auto-generated constructor stub
+	public Duchy() {
+		super("Duchy", 5, 3);
+		
 	}
 	
 }
