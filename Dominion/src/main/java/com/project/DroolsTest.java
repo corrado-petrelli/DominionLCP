@@ -22,6 +22,9 @@ import com.project.cards.victories.Province;
  */
 public class DroolsTest {
 
+	//Useful to the Gardens card
+	public static Player actualPlayer;
+	
     public static final void main(String[] args) {
         try {
 	        KieServices ks = KieServices.Factory.get();
