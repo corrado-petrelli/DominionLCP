@@ -2,7 +2,9 @@ package com.project;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
@@ -41,20 +43,51 @@ public class DroolsTest {
         	
         	
         	
-        	//DECKS
+        	//DECKS: treasure 
         	List<Copper> copperDeck = new ArrayList<>();
         	List<Silver> silverDeck = new ArrayList<>();
         	List<Gold> goldDeck = new ArrayList<>();
+        	//DECKS: victory
         	List<Estate> estateDeck = new ArrayList<>();
         	List<Duchy> duchyDeck = new ArrayList<>();
         	List<Province> provinceDeck = new ArrayList<>();
         	List<Curse> curseDeck = new ArrayList<>();
         	List<Card> trashDeck = new ArrayList<>(0);
         	
+        	/*
         	List<Kingdom> allKingdomCard = new ArrayList<>();
+        	allKingdomCard.add(new Adventurer());
+			allKingdomCard.add(new Bureaucrat());
+			allKingdomCard.add(new Cellar());
+			allKingdomCard.add(new Chancellor());
+			allKingdomCard.add(new Chapel());
+			allKingdomCard.add(new Councilroom());
+			allKingdomCard.add(new Feast());
+			allKingdomCard.add(new Festival());
+			allKingdomCard.add(new Laboratory());
+			allKingdomCard.add(new Library());
+			allKingdomCard.add(new Market());
+			allKingdomCard.add(new Militia());
+			allKingdomCard.add(new Mine());
+			allKingdomCard.add(new Moat());
+			allKingdomCard.add(new Moneylender());
+			allKingdomCard.add(new Remodel());
+			allKingdomCard.add(new Smithy());
+			allKingdomCard.add(new Spy());
+			allKingdomCard.add(new Thief());
+			allKingdomCard.add(new Throneroom());
+			allKingdomCard.add(new Village());
+			allKingdomCard.add(new Witch());
+			allKingdomCard.add(new Woodcutter());
+			allKingdomCard.add(new Workshop());
+			//12 gardens cards
+			for (j = 0; j < 12; j++){
+				allKingdomCard.add(new Gardens());
+			}
+
+			*/
         	
-        	
-        	List<List<? extends Kingdom>> kingdomDecks = new ArrayList<List<? extends Kingdom>>(10);
+        	Map<String,ArrayList<Kingdom>> kingdomDecks = new HashMap<String,ArrayList<Kingdom>>();
         	
 
         	/*
@@ -65,6 +98,32 @@ public class DroolsTest {
 				███████║███████╗   ██║   ╚██████╔╝██║     
 				╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝                                    
         	 */
+        	
+        	//Create a configuration for kingdom decks
+        	kingdomDecks.put("Cellar", new ArrayList<Kingdom>());
+        	kingdomDecks.put("Market", new ArrayList<Kingdom>());
+        	kingdomDecks.put("Militia", new ArrayList<Kingdom>());
+        	kingdomDecks.put("Mine", new ArrayList<Kingdom>());
+        	kingdomDecks.put("Moat", new ArrayList<Kingdom>());
+        	kingdomDecks.put("Remodel", new ArrayList<Kingdom>());
+        	kingdomDecks.put("Smithy", new ArrayList<Kingdom>());
+        	kingdomDecks.put("Village", new ArrayList<Kingdom>());
+        	kingdomDecks.put("Woodcutter", new ArrayList<Kingdom>());
+        	kingdomDecks.put("Workshop", new ArrayList<Kingdom>());
+        	
+        	for (j = 0; j < 10; j++){
+        		kingdomDecks.get("Cellar").add(new Cellar());
+        		kingdomDecks.get("Market").add(new Market());
+        		kingdomDecks.get("Militia").add(new Militia());
+        		kingdomDecks.get("Mine").add(new Mine());
+        		kingdomDecks.get("Moat").add(new Moat());
+        		kingdomDecks.get("Remodel").add(new Remodel());
+        		kingdomDecks.get("Smithy").add(new Smithy());
+        		kingdomDecks.get("Village").add(new Village());
+        		kingdomDecks.get("Woodcutter").add(new Woodcutter());
+        		kingdomDecks.get("Workshop").add(new Workshop());
+        	}
+        	
         	//60 cooper
         	for (j = 0; j < 60; j++)
         		copperDeck.add(new Copper());
@@ -85,40 +144,8 @@ public class DroolsTest {
         		provinceDeck.add(new Province());
         		duchyDeck.add(new Duchy());
         	}        		
-
-        	//24 kingdom cards (10 per type)
-			for (j = 0; j < 10; j++){
-				allKingdomCard.add(new Adventurer());
-				allKingdomCard.add(new Bureaucrat());
-				allKingdomCard.add(new Cellar());
-				allKingdomCard.add(new Chancellor());
-				allKingdomCard.add(new Chapel());
-				allKingdomCard.add(new Councilroom());
-				allKingdomCard.add(new Feast());
-				allKingdomCard.add(new Festival());
-				allKingdomCard.add(new Laboratory());
-				allKingdomCard.add(new Library());
-				allKingdomCard.add(new Market());
-				allKingdomCard.add(new Militia());
-				allKingdomCard.add(new Mine());
-				allKingdomCard.add(new Moat());
-				allKingdomCard.add(new Moneylender());
-				allKingdomCard.add(new Remodel());
-				allKingdomCard.add(new Smithy());
-				allKingdomCard.add(new Spy());
-				allKingdomCard.add(new Thief());
-				allKingdomCard.add(new Throneroom());
-				allKingdomCard.add(new Village());
-				allKingdomCard.add(new Witch());
-				allKingdomCard.add(new Woodcutter());
-				allKingdomCard.add(new Workshop());
-			}
 			
-			//12 gardens cards
-			for (j = 0; j < 12; j++){
-				allKingdomCard.add(new Gardens());
-			}
-
+			
         	
 			//Each player starts the game with the same cards:
 			//7 coppers	& 3 estates
@@ -146,11 +173,14 @@ public class DroolsTest {
 				██║     ███████╗██║  ██║   ██║   
 				╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   				                                 
 			 */
+			//Randomly determine the starting player.
+			Collections.shuffle(players);
 			int indexActualPlayer = 0;
 			actualPlayer = players.get(indexActualPlayer);
-			while(provinceDeck.size() != 0 /*&& any 3 Supply piles are empty*/){
+			do{
+				System.out.println("Now it's the turn of "+actualPlayer.getUsername());
 				/*
-				 * PHASE 1: ACTION PHASE
+				 * PHASE 1: ACTION PHASE - facultative
 				 */
 				
 				/*
@@ -170,7 +200,7 @@ public class DroolsTest {
 				else
 					indexActualPlayer++;
 				actualPlayer = players.get(indexActualPlayer);
-			}
+			}while(provinceDeck.size() != 0 /*&& any 3 Supply piles are empty*/);
 			
 			/*
 			████████╗██╗  ██╗███████╗    ██╗    ██╗██╗███╗   ██╗███╗   ██╗███████╗██████╗     ██╗███████╗
