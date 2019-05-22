@@ -1,6 +1,7 @@
 package com.project;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.project.cards.Card;
@@ -33,6 +34,18 @@ public class Player {
 		return hand;
 	}
 
+	public void addToHand(Card newCard){
+		hand.add(newCard);
+	}
+	
+	public void addToDeck(Card newCard){
+		deck.add(newCard);
+	}
+	
+	public void shuffleDeck(){
+		Collections.shuffle(deck);
+	}
+	
 	public int getVirtualCoins() {
 		return virtualCoins;
 	}
