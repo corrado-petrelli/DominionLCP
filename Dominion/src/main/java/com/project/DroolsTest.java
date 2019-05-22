@@ -9,6 +9,9 @@ import java.util.Map;
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.rule.AgendaFilter;
+import org.kie.api.runtime.rule.FactHandle;
+import org.kie.api.runtime.rule.Match;
 
 import com.project.cards.Card;
 import com.project.cards.curses.Curse;
@@ -42,6 +45,9 @@ public class DroolsTest {
         	players.add(new Player("Fulvio"));
         	
         	
+        	FactHandle handlePlayer1 = kSession.insert(players.get(0));        	
+        	FactHandle handlePlayer2 = kSession.insert(players.get(1));
+        	FactHandle handlePlayer3 = kSession.insert(players.get(2));
         	
         	//DECKS: treasure 
         	List<Copper> copperDeck = new ArrayList<>();
@@ -163,6 +169,17 @@ public class DroolsTest {
 					player.addToHand(player.getDeck().remove(0));
 			}
 			
+			//kSession.fireAllRules();
+			kSession.fireAllRules(0);
+			kSession.fireAllRules(new AgendaFilter() {
+				
+				@Override
+				public boolean accept(Match a) {
+					// TODO Auto-generated method stub
+					return false;
+				}
+			});
+			
 			//TODO I don't understand how to structure the kingdom decks
 			
 			/*
@@ -220,7 +237,7 @@ public class DroolsTest {
 			for (j = 0; j < players.size(); j++)
 				System.out.println((j+1)+"-\t"+players.get(j));
 			
-        	kSession.fireAllRules();
+        	//kSession.fireAllRules();
         	
         	
         } catch (Throwable t) {

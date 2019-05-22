@@ -1,0 +1,29 @@
+//created on: 22-mag-2019
+package rules
+
+//list any import classes here.
+import com.project.*;
+
+
+//declare any global variables here
+global java.lang.Integer init;
+
+
+
+rule "Your First Rule"
+
+    when
+        //conditions
+        
+    then
+		
+end
+
+rule "Your Second Rule"
+    //include attributes such as "salience" here...
+    when
+        //conditions
+    then
+        //actions
+
+end
