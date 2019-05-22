@@ -2,7 +2,7 @@ package com.project.cards.kingdoms;
 
 public class Woodcutter extends Kingdom {
 
-	public Woodcutter(String subtype, int cost) {
+	public Woodcutter() {
 		super("Woodcutter", null, 3);
 		
 	}

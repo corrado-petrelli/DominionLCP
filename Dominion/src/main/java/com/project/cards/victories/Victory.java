@@ -17,7 +17,7 @@ public abstract class Victory extends Card {
 	}
 	
 	public String toString() {
-		return "Victory [value=" + value + ", name=" + name + ", type=" + type + ", subtype=" + subtype + ", cost="
+		return "Victory [value=" + value + ", name=" + name + ", type=" + type + ", cost="
 				+ cost + "]";
 	}
 	

@@ -2,7 +2,7 @@ package com.project.cards.kingdoms;
 
 public class Adventurer extends Kingdom {
 
-	public Adventurer(String subtype, int cost) {
+	public Adventurer() {
 		super("Adventurer", null, 2);
 		
 	}

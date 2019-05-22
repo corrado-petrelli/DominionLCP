@@ -5,7 +5,7 @@ import com.project.cards.IVictoryCard;
 
 public class Gardens extends Kingdom implements IVictoryCard{
 
-	public Gardens(String subtype, int cost) {
+	public Gardens() {
 		super("Gardens", "Victory", 4);
 		
 	}

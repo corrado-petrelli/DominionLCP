@@ -2,7 +2,7 @@ package com.project.cards.kingdoms;
 
 public class Remodel extends Kingdom {
 
-	public Remodel(String subtype, int cost) {
+	public Remodel() {
 		super("Remodel", null, 4);
 		
 	}

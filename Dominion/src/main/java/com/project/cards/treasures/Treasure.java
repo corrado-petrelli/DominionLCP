@@ -18,7 +18,7 @@ public abstract class Treasure extends Card {
 	
 	
 	public String toString() {
-		return "Treasure [value=" + value + ", name=" + name + ", type=" + type + ", subtype=" + subtype + ", cost="
+		return "Card [value=" + value + ", name=" + name + ", type=" + type +", cost="
 				+ cost + "]";
 	}
 

@@ -2,7 +2,7 @@ package com.project.cards.kingdoms;
 
 public class Moat extends Kingdom {
 
-	public Moat(String subtype, int cost) {
+	public Moat() {
 		super("Moat", "Reaction", 2);
 		
 	}

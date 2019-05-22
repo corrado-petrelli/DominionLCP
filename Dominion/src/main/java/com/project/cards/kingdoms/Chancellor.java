@@ -2,7 +2,7 @@ package com.project.cards.kingdoms;
 
 public class Chancellor extends Kingdom {
 
-	public Chancellor(String subtype, int cost) {
+	public Chancellor() {
 		super("Chancellor", null, 3);
 		
 	}

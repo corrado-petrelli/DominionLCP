@@ -17,7 +17,7 @@ public class Curse extends Card {
 
 	
 	public String toString() {
-		return "Curse [value=" + value + ", name=" + name + ", type=" + type + ", subtype=" + subtype + ", cost=" + cost
+		return "Card [value=" + value + ", name=" + name + ", type=" + type + ", cost=" + cost
 				+ "]";
 	}
 	public static void main(String[] args) {

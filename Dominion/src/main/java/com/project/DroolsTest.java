@@ -10,12 +10,14 @@ import org.kie.api.runtime.KieSession;
 
 import com.project.cards.Card;
 import com.project.cards.curses.Curse;
+import com.project.cards.kingdoms.*;
 import com.project.cards.treasures.Copper;
 import com.project.cards.treasures.Gold;
 import com.project.cards.treasures.Silver;
 import com.project.cards.victories.Duchy;
 import com.project.cards.victories.Estate;
 import com.project.cards.victories.Province;
+import com.sun.media.jfxmedia.events.MarkerEvent;
 
 /**
  * This is a sample class to launch a rule.
@@ -46,17 +48,47 @@ public class DroolsTest {
         	for (j = 0; j < 20; j++)
         		deck.add(new Curse());
 			//12 estate
-        	for (j = 0; j < 12; j++)
-        		deck.add(new Estate());
         	//12 duchy
-        	for (j = 0; j < 12; j++)
-        		deck.add(new Duchy());
         	//12 province
-        	for (j = 0; j < 12; j++)
+        	for (j = 0; j < 12; j++){
+        		deck.add(new Estate());
         		deck.add(new Province());
-            /*
-             * TODO: You must insert the kingdom cards!
-             */
+        		deck.add(new Duchy());
+        	}        		
+
+        	//24 kingdom cards (10 per type)
+			for (j = 0; j < 10; j++){
+				deck.add(new Adventurer());
+				deck.add(new Bureaucrat());
+				deck.add(new Cellar());
+				deck.add(new Chancellor());
+				deck.add(new Chapel());
+				deck.add(new Councilroom());
+				deck.add(new Feast());
+				deck.add(new Festival());
+				deck.add(new Laboratory());
+				deck.add(new Library());
+				deck.add(new Market());
+				deck.add(new Militia());
+				deck.add(new Mine());
+				deck.add(new Moat());
+				deck.add(new Moneylender());
+				deck.add(new Remodel());
+				deck.add(new Smithy());
+				deck.add(new Spy());
+				deck.add(new Thief());
+				deck.add(new Throneroom());
+				deck.add(new Village());
+				deck.add(new Witch());
+				deck.add(new Woodcutter());
+				deck.add(new Workshop());
+			}
+			
+			//12 gardens cards
+			for (j = 0; j < 12; j++){
+				deck.add(new Gardens());
+			}
+
         	
         	int count = 0;        	
         	System.out.println("Total: "+count);
@@ -64,6 +96,7 @@ public class DroolsTest {
 				System.out.println(card);
         		++count;
         	}
+        	System.out.println("Total: "+count);
 
         	Player corrado = new Player("Corrado");
         	Player vincenzo = new Player("Vincenzo");
