@@ -35,6 +35,8 @@ public class DroolsTest {
     	    KieContainer kContainer = ks.getKieClasspathContainer();
         	KieSession kSession = kContainer.newKieSession("ksession-rules");
 
+
+        	int j = 0;
         	List<Player> players = new ArrayList<Player>(3);
         	players.add(new Player("Corrado"));
         	players.add(new Player("Vincenzo"));
@@ -43,16 +45,22 @@ public class DroolsTest {
         	
         	
         	//DECKS
-        	ArrayList<Copper> copperDeck = new ArrayList<>();
-        	ArrayList<Silver> silverDeck = new ArrayList<>();
-        	ArrayList<Gold> goldDeck = new ArrayList<>();
-        	ArrayList<Estate> estateDeck = new ArrayList<>();
-        	ArrayList<Duchy> duchyDeck = new ArrayList<>();
-        	ArrayList<Province> provinceDeck = new ArrayList<>();
-        	ArrayList<Curse> curseDeck = new ArrayList<>();
-        	ArrayList<Card> trashDeck = new ArrayList<>();
-        	ArrayList<Kingdom> kingdomDeck = new ArrayList<>();
-        	int j = 0;
+        	List<Copper> copperDeck = new ArrayList<>();
+        	List<Silver> silverDeck = new ArrayList<>();
+        	List<Gold> goldDeck = new ArrayList<>();
+        	List<Estate> estateDeck = new ArrayList<>();
+        	List<Duchy> duchyDeck = new ArrayList<>();
+        	List<Province> provinceDeck = new ArrayList<>();
+        	List<Curse> curseDeck = new ArrayList<>();
+        	List<Card> trashDeck = new ArrayList<>();
+        	
+        	List<Kingdom> allKingdomCard = new ArrayList<>();
+        	
+        	
+        	List<List<? extends Kingdom>> kingdomDecks = new ArrayList<List<? extends Kingdom>>(10);
+        	
+
+        	
         	//60 cooper
         	for (j = 0; j < 60; j++)
         		copperDeck.add(new Copper());
@@ -76,35 +84,35 @@ public class DroolsTest {
 
         	//24 kingdom cards (10 per type)
 			for (j = 0; j < 10; j++){
-				kingdomDeck.add(new Adventurer());
-				kingdomDeck.add(new Bureaucrat());
-				kingdomDeck.add(new Cellar());
-				kingdomDeck.add(new Chancellor());
-				kingdomDeck.add(new Chapel());
-				kingdomDeck.add(new Councilroom());
-				kingdomDeck.add(new Feast());
-				kingdomDeck.add(new Festival());
-				kingdomDeck.add(new Laboratory());
-				kingdomDeck.add(new Library());
-				kingdomDeck.add(new Market());
-				kingdomDeck.add(new Militia());
-				kingdomDeck.add(new Mine());
-				kingdomDeck.add(new Moat());
-				kingdomDeck.add(new Moneylender());
-				kingdomDeck.add(new Remodel());
-				kingdomDeck.add(new Smithy());
-				kingdomDeck.add(new Spy());
-				kingdomDeck.add(new Thief());
-				kingdomDeck.add(new Throneroom());
-				kingdomDeck.add(new Village());
-				kingdomDeck.add(new Witch());
-				kingdomDeck.add(new Woodcutter());
-				kingdomDeck.add(new Workshop());
+				allKingdomCard.add(new Adventurer());
+				allKingdomCard.add(new Bureaucrat());
+				allKingdomCard.add(new Cellar());
+				allKingdomCard.add(new Chancellor());
+				allKingdomCard.add(new Chapel());
+				allKingdomCard.add(new Councilroom());
+				allKingdomCard.add(new Feast());
+				allKingdomCard.add(new Festival());
+				allKingdomCard.add(new Laboratory());
+				allKingdomCard.add(new Library());
+				allKingdomCard.add(new Market());
+				allKingdomCard.add(new Militia());
+				allKingdomCard.add(new Mine());
+				allKingdomCard.add(new Moat());
+				allKingdomCard.add(new Moneylender());
+				allKingdomCard.add(new Remodel());
+				allKingdomCard.add(new Smithy());
+				allKingdomCard.add(new Spy());
+				allKingdomCard.add(new Thief());
+				allKingdomCard.add(new Throneroom());
+				allKingdomCard.add(new Village());
+				allKingdomCard.add(new Witch());
+				allKingdomCard.add(new Woodcutter());
+				allKingdomCard.add(new Workshop());
 			}
 			
 			//12 gardens cards
 			for (j = 0; j < 12; j++){
-				kingdomDeck.add(new Gardens());
+				allKingdomCard.add(new Gardens());
 			}
 
         	
@@ -123,8 +131,8 @@ public class DroolsTest {
 				for(j = 0; j < 5; j++)
 					player.addToHand(player.getDeck().remove(0));
 			}
-
-        	
+			
+			
         	kSession.fireAllRules();
         	
         	
