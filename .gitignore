@@ -31,3 +31,11 @@ RemoteSystemsTempFiles/*
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
+
+Dominion/\.settings/\.drools\.runtime
+
+Dominion/target/classes/logback-test\.xml
+
+Dominion/target/classes/META-INF/kmodule\.xml
+
+Dominion/target/classes/META-INF/maven/
