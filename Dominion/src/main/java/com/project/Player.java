@@ -5,10 +5,11 @@ import java.util.Collections;
 import java.util.List;
 
 import com.project.cards.Card;
+import com.project.cards.IVictoryCard;
 import com.project.cards.kingdoms.Kingdom;
 import com.project.cards.treasures.Treasure;
 
-public class Player {
+public class Player implements Comparable<Player>{
 	private List<Card> deck;
 	private List<Card> hand;
 	/**
@@ -70,6 +71,15 @@ public class Player {
 		return username;
 	}
 	
+	public int getVictoryPoint(){
+		int total = 0;
+		for(Card card : hand){
+			if(card instanceof IVictoryCard)
+				total += ((IVictoryCard) card).getVictoryPoint();
+		}
+		return total;
+	}
+	
 	public void buy(Card cardToBuy)
 	{
 		if(cardToBuy.getCost() <= this.getTotalCoins()){
@@ -112,6 +122,22 @@ public class Player {
 			//ERROR
 		}
 	}
+
+	@Override
+	public int compareTo(Player o) {
+		if(this.getVictoryPoint() > o.getVictoryPoint())
+			return 1;
+		else if(this.getVictoryPoint() == o.getVictoryPoint())
+			return 0;
+		else
+			return -1;
+	}
+
+	@Override
+	public String toString() {
+		return getUsername() + " ("+getVictoryPoint()+")";
+	}
+	
 	
 	
 	

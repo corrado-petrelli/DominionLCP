@@ -2,9 +2,7 @@ package com.project;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
@@ -19,7 +17,6 @@ import com.project.cards.treasures.Silver;
 import com.project.cards.victories.Duchy;
 import com.project.cards.victories.Estate;
 import com.project.cards.victories.Province;
-import com.sun.media.jfxmedia.events.MarkerEvent;
 
 /**
  * This is a sample class to launch a rule.
@@ -52,7 +49,7 @@ public class DroolsTest {
         	List<Duchy> duchyDeck = new ArrayList<>();
         	List<Province> provinceDeck = new ArrayList<>();
         	List<Curse> curseDeck = new ArrayList<>();
-        	List<Card> trashDeck = new ArrayList<>();
+        	List<Card> trashDeck = new ArrayList<>(0);
         	
         	List<Kingdom> allKingdomCard = new ArrayList<>();
         	
@@ -60,7 +57,14 @@ public class DroolsTest {
         	List<List<? extends Kingdom>> kingdomDecks = new ArrayList<List<? extends Kingdom>>(10);
         	
 
-        	
+        	/*
+				███████╗███████╗████████╗██╗   ██╗██████╗ 
+				██╔════╝██╔════╝╚══██╔══╝██║   ██║██╔══██╗
+				███████╗█████╗     ██║   ██║   ██║██████╔╝
+				╚════██║██╔══╝     ██║   ██║   ██║██╔═══╝ 
+				███████║███████╗   ██║   ╚██████╔╝██║     
+				╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝                                    
+        	 */
         	//60 cooper
         	for (j = 0; j < 60; j++)
         		copperDeck.add(new Copper());
@@ -121,7 +125,7 @@ public class DroolsTest {
 			//Each player	shuffles these cards and places them (his Deck)
 			//face-down in his play area (the area near him on the table).
 			//Now, each player draws 5 cards from his Deck. These cards are the
-			//player�s hand.
+			//player’s hand.
 			for (Player player : players) {
 				for(j = 0; j < 7; j++)
 					player.addToDeck(copperDeck.remove(0));
@@ -132,6 +136,59 @@ public class DroolsTest {
 					player.addToHand(player.getDeck().remove(0));
 			}
 			
+			//TODO I don't understand how to structure the kingdom decks
+			
+			/*
+				██████╗ ██╗      █████╗ ██╗   ██╗
+				██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝
+				██████╔╝██║     ███████║ ╚████╔╝ 
+				██╔═══╝ ██║     ██╔══██║  ╚██╔╝  
+				██║     ███████╗██║  ██║   ██║   
+				╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   				                                 
+			 */
+			int indexActualPlayer = 0;
+			actualPlayer = players.get(indexActualPlayer);
+			while(provinceDeck.size() != 0 /*&& any 3 Supply piles are empty*/){
+				/*
+				 * PHASE 1: ACTION PHASE
+				 */
+				
+				/*
+				 * PHASE 2: BUY PHASE
+				 */
+				
+				/*
+				 * PHASE 3: CLEAN-UP PHASE
+				 */
+				
+				
+				//Check here if 3 or more supply piles are empty
+				
+				//Change the turn
+				if(indexActualPlayer == 2)
+					indexActualPlayer = 0;
+				else
+					indexActualPlayer++;
+				actualPlayer = players.get(indexActualPlayer);
+			}
+			
+			/*
+			████████╗██╗  ██╗███████╗    ██╗    ██╗██╗███╗   ██╗███╗   ██╗███████╗██████╗     ██╗███████╗
+			╚══██╔══╝██║  ██║██╔════╝    ██║    ██║██║████╗  ██║████╗  ██║██╔════╝██╔══██╗    ██║██╔════╝
+			   ██║   ███████║█████╗      ██║ █╗ ██║██║██╔██╗ ██║██╔██╗ ██║█████╗  ██████╔╝    ██║███████╗
+			   ██║   ██╔══██║██╔══╝      ██║███╗██║██║██║╚██╗██║██║╚██╗██║██╔══╝  ██╔══██╗    ██║╚════██║
+			   ██║   ██║  ██║███████╗    ╚███╔███╔╝██║██║ ╚████║██║ ╚████║███████╗██║  ██║    ██║███████║
+			   ╚═╝   ╚═╝  ╚═╝╚══════╝     ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝    ╚═╝╚══════╝
+			                                                                                             
+			 */
+			//Sort ascendent the players (the class player implements Comparable)
+			Collections.sort(players);
+			//Reverse the list
+			Collections.reverse(players);
+			//Print the ranking
+			System.out.println("***RANK***");
+			for (j = 0; j < players.size(); j++)
+				System.out.println((j+1)+"-\t"+players.get(j));
 			
         	kSession.fireAllRules();
         	
