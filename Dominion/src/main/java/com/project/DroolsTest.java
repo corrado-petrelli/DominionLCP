@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.kie.api.KieServices;
+import org.kie.api.event.rule.ObjectDeletedEvent;
+import org.kie.api.event.rule.ObjectInsertedEvent;
+import org.kie.api.event.rule.ObjectUpdatedEvent;
+import org.kie.api.event.rule.RuleRuntimeEventListener;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.rule.AgendaFilter;
@@ -44,10 +48,6 @@ public class DroolsTest {
         	players.add(new Player("Vincenzo"));
         	players.add(new Player("Fulvio"));
         	
-        	
-        	FactHandle handlePlayer1 = kSession.insert(players.get(0));        	
-        	FactHandle handlePlayer2 = kSession.insert(players.get(1));
-        	FactHandle handlePlayer3 = kSession.insert(players.get(2));
         	
         	//DECKS: treasure 
         	List<Copper> copperDeck = new ArrayList<>();
@@ -191,15 +191,18 @@ public class DroolsTest {
 				╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   				                                 
 			 */
 			//Randomly determine the starting player.
-			Collections.shuffle(players);
 			int indexActualPlayer = 0;
 			actualPlayer = players.get(indexActualPlayer);
+			System.out.println("Now it's the turn of "+actualPlayer.getUsername());
+			
 			do{
-				System.out.println("Now it's the turn of "+actualPlayer.getUsername());
 				/*
 				 * PHASE 1: ACTION PHASE - facultative
 				 */
-				
+				kSession.insert(actualPlayer);
+				kSession.insert(new Smithy());
+				kSession.insert(Action.USE);
+				kSession.fireAllRules();
 				/*
 				 * PHASE 2: BUY PHASE
 				 */
@@ -217,7 +220,8 @@ public class DroolsTest {
 				else
 					indexActualPlayer++;
 				actualPlayer = players.get(indexActualPlayer);
-			}while(provinceDeck.size() != 0 /*&& any 3 Supply piles are empty*/);
+
+			}while(provinceDeck.size() == 0 /*&& any 3 Supply piles are empty*/);
 			
 			/*
 			████████╗██╗  ██╗███████╗    ██╗    ██╗██╗███╗   ██╗███╗   ██╗███████╗██████╗     ██╗███████╗

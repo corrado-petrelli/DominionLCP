@@ -1,22 +1,24 @@
 package rules
 import com.project.Player;
+import com.project.Action;
 import com.project.cards.Card;
- 
- 
-rule "Draw one card"
-	when
-		//Game( $ap : actualPlayer )
-		$ap : Player(  )
-	then
-		Card card = $ap.getDeck().remove(0);
-		$ap.getHand().add(card);
-		System.out.println("Player: " + $ap.getUsername() + " draws a card, hand size: "+$ap.getHand().size());
-end
 
-rule "Add one virtual coin"
+import com.project.cards.kingdoms.*;
+
+ 
+
+
+
+rule "Smithy card"
 	when
-		$ap : Player(  )	
+		$player : Player( $username : username )
+		$card : Smithy( )
+		$action : Action( this == Action.USE)
 	then
-		$ap.setVirtualCoins($ap.getVirtualCoins() + 1);
-		System.out.println("Player: " + $ap.getUsername() + " gets one virtual coin, virtual coins: "+$ap.getVirtualCoins());
+			System.out.println($username+" use Smithy Rule!");
+			retract($player)
+			retract($card)
+			retract($action)
+			
+		
 end
