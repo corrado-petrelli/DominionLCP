@@ -12,19 +12,41 @@ import com.project.cards.treasures.Treasure;
 public class Player implements Comparable<Player>{
 	private List<Card> deck;
 	private List<Card> hand;
+	private List<Card> discard;
 	/**
 	 * There is a card that provide coins but not provide a treasure card
 	 * this type of coin is called "virtual coin"
 	 */
 	private int virtualCoins;
+	private int actions;
+	private int purchases;
 	private String username;
 	
 	public Player(String username) {
 		super();
 		this.deck = new ArrayList<>();
 		this.hand = new ArrayList<>();
+		this.discard = new ArrayList<>();
 		this.virtualCoins = 0;
+		this.actions = 0;
+		this.purchases = 0;
 		this.username = username;
+	}
+
+	public int getPurchases() {
+		return purchases;
+	}
+
+	public void setPurchases(int purchases) {
+		this.purchases = purchases;
+	}
+
+	public int getActions() {
+		return actions;
+	}
+
+	public void setActions(int actions) {
+		this.actions = actions;
 	}
 
 	public List<Card> getDeck() {
@@ -33,6 +55,10 @@ public class Player implements Comparable<Player>{
 
 	public List<Card> getHand() {
 		return hand;
+	}
+	
+	public List<Card> getDiscard() {
+		return discard;
 	}
 
 	public void addToHand(Card newCard){

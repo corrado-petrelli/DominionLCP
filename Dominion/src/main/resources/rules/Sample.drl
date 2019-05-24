@@ -1,24 +1,471 @@
 package rules
+
 import com.project.Player;
 import com.project.Action;
 import com.project.cards.Card;
-
 import com.project.cards.kingdoms.*;
+import com.project.cards.treasures.*;
+import com.project.cards.victories.*;
+import com.project.cards.curses.*;
+import java.util.*;
 
- 
+global List<Card> trashPile;
+global Random gameLogic;
+
+function void draw(Player p, int amount) {
+	for(int i = 0; i < amount; i++) {
+		p.getHand().add(p.getDeck().remove(0));
+	}
+	System.out.println(p.getUsername() + " drew " + amount + " cards.");
+}
+
+function void coin(Player p, int amount) {
+	p.setVirtualCoins(amount);
+	System.out.println(p.getUsername() + " obtained " + amount + " coins");
+}
+
+function void buy(Player p, Card c) {
+	p.getDiscard().add(c);
+	System.out.println(p.getUsername() + " bought " + c.getName());
+}
+
+function void beCursed(Player p) {
+	p.getDiscard().add(new com.project.cards.curses.Curse());
+	System.out.println(p.getUsername() + " obtained a Curse");
+}
 
 
+function void discard(Player p, int amount) {
+	Random r = new Random();
+	for(int i = 0; i < amount; i++) {
+		p.getHand().remove(r.nextInt(p.getHand().size()-1));
+	}
+	System.out.println(p.getUsername() + " discarded " + amount + " cards.");
+}
 
-rule "Smithy card"
+function void addFromDiscardPile(Player p, int amount) {
+	Random r = new Random();
+	for(int i = 0; i < amount; i++) {
+		Card c = p.getDiscard().remove(r.nextInt(p.getDiscard().size()));
+		p.getHand().add(c);
+		System.out.println(p.getUsername() + " added " + c.getName() + " from his/her discard pile.");
+	}
+	System.out.println(p.getUsername() + " added a total of " + amount + " cards from his/her discard pile.");
+}
+
+function void addActions(Player p, int amount) {
+	p.setActions(p.getActions()+amount);
+	System.out.println(p.getUsername() + " can do " + amount + " more actions.");
+}
+
+function void addPurchase(Player p, int amount) {
+	p.setPurchases(p.getPurchases()+amount);
+	System.out.println(p.getUsername() + " can purchase " + amount + " more cards.");
+}
+
+/*
+function void trash(Player p, Card c) {
+	p.getHand().remove(index);
+	trashPile.add(c);
+}
+*/
+
+rule "Play Copper card"
 	when
 		$player : Player( $username : username )
-		$card : Smithy( )
-		$action : Action( this == Action.USE)
+		$card : Copper( $amount : value )
+		$action : Action( this == Action.USE )
 	then
-			System.out.println($username+" use Smithy Rule!");
-			retract($player)
-			retract($card)
-			retract($action)
-			
+		System.out.println($username+" used "+$card.getName()+".");
+		coin($player,$amount);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Play Silver card"
+	when
+		$player : Player( $username : username )
+		$card : Silver( $amount : value )
+		$action : Action( this == Action.USE )
+	then
+		System.out.println($username+" used "+$card.getName()+".");
+		coin($player,$amount);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Play Gold card"
+	when
+		$player : Player( $username : username )
+		$card : Copper( $amount : value )
+		$action : Action( this == Action.USE )
+	then
+		System.out.println($username+" used "+$card.getName()+".");
+		coin($player,$amount);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Buy Estate card"
+	when
+		$player : Player( $username : username )
+		$card : Estate(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Buy Duchy card"
+	when
+		$player : Player( $username : username )
+		$card : Duchy(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Buy Province card"
+	when
+		$player : Player( $username : username )
+		$card : Province(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+/*
+rule "Play Witch card"
+	when
+		$player : Player( $username : username )
+		$opponents : List(  )
+		$card : Witch(  )
+		$action : Action( this == Action.USE )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+*/
+
+rule "Play Cellar card"
+	when
+		$player : Player( $username : username )
+		$card : Cellar( $amount : amount )
+		$action : Action( this == Action.USE )
+	then
+		System.out.println($username+" used "+$card.getName()+".");
+		discard($player,$amount);
+		draw($player,$amount);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Buy Cellar card"
+	when
+		$player : Player( $username : username )
+		$card : Cellar(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Play Chapel card"
+	when
+		$player : Player( $username : username )
+		$card : Chapel( $amount : amount )
+		$action : Action( this == Action.USE )
+	then
 		
+		System.out.println($username+" used "+$card.getName()+".");
+		// trash cards here
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Buy Chapel card"
+	when
+		$player : Player( $username : username )
+		$card : Chapel(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Play Moat card"
+	when
+		$player : Player( $username : username )
+		$card : Moat(  )
+		$action : Action( this == Action.USE )
+	then
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,2);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Buy Moat card"
+	when
+		$player : Player( $username : username )
+		$card : Moat(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+/*
+rule "Play Harbinger card"
+	when
+		$player : Player( $username : username )
+		$card : Harbinger(  )
+		$action : Action( this == Action.USE )
+	then
+		System.out.println($username+" used Harbinger.");
+		draw($player,1);
+		addActions($player,1);
+		if(gameLogic.nextBoolean()) {
+			addFromDiscardPile($player,1);
+		}
+		retract($player)
+		retract($card)
+		retract($action)
+end
+*/
+
+rule "Play Village card"
+	when
+		$player : Player( $username : username )
+		$card : Village(  )
+		$action : Action( this == Action.USE )
+	then
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,1);
+		addActions($player,2);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Buy Village card"
+	when
+		$player : Player( $username : username )
+		$card : Village(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Play Smithy card"
+	when
+		$player : Player( $username : username )
+		$card : Smithy(  )
+		// I need the action to understand what the player will do with that card
+		$action : Action( this == Action.USE )
+	then
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,3);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Buy Smithy card"
+	when
+		$player : Player( $username : username )
+		$card : Smithy(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Play Market card"
+	when
+		$player : Player( $username : username )
+		$card : Market(  )
+		$action : Action( this == Action.USE )
+	then
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,1);
+		addActions($player,1);
+		addPurchase($player,1);
+		coin($player,1);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Buy Market card"
+	when
+		$player : Player( $username : username )
+		$card : Market(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Play Militia card"
+	when
+		$player : Player( $username : username )
+		$card : Market(  )
+		$action : Action( this == Action.USE )
+	then
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,1);
+		addActions($player,1);
+		addPurchase($player,1);
+		coin($player,1);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Buy Militia card"
+	when
+		$player : Player( $username : username )
+		$card : Militia(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Play Mine card"
+	when
+		$player : Player( $username : username )
+		$card : Mine(  )
+		$action : Action( this == Action.USE )
+	then
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,1);
+		addActions($player,1);
+		addPurchase($player,1);
+		coin($player,1);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Buy Mine card"
+	when
+		$player : Player( $username : username )
+		$card : Mine(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Play Remodel card"
+	when
+		$player : Player( $username : username )
+		$card : Remodel(  )
+		$action : Action( this == Action.USE )
+	then
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,1);
+		addActions($player,1);
+		addPurchase($player,1);
+		coin($player,1);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Buy Remodel card"
+	when
+		$player : Player( $username : username )
+		$card : Remodel(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Play Woodcutter card"
+	when
+		$player : Player( $username : username )
+		$card : Woodcutter(  )
+		$action : Action( this == Action.USE )
+	then
+		System.out.println($username+" used "+$card.getName()+".");
+		addPurchase($player,1);
+		coin($player,2);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Buy Woodcutter card"
+	when
+		$player : Player( $username : username )
+		$card : Woodcutter(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Play Workshop card"
+	when
+		$player : Player( $username : username )
+		$card : Workshop(  )
+		$action : Action( this == Action.USE )
+	then
+		System.out.println($username+" used "+$card.getName()+".");
+		addPurchase($player,1);
+		coin($player,2);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Buy Workshop card"
+	when
+		$player : Player( $username : username )
+		$card : Workshop(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
 end

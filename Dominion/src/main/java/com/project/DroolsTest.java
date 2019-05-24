@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import org.kie.api.KieServices;
 import org.kie.api.event.rule.ObjectDeletedEvent;
@@ -93,7 +94,7 @@ public class DroolsTest {
 
 			*/
         	
-        	Map<String,ArrayList<Kingdom>> kingdomDecks = new HashMap<String,ArrayList<Kingdom>>();
+        	Map<Integer,ArrayList<Kingdom>> kingdomDecks = new HashMap<Integer,ArrayList<Kingdom>>();
         	
 
         	/*
@@ -106,6 +107,10 @@ public class DroolsTest {
         	 */
         	
         	//Create a configuration for kingdom decks
+        	
+        	for(int i = 0; i < 10; i++)
+        		kingdomDecks.put(i, new ArrayList<Kingdom>());
+        	/*
         	kingdomDecks.put("Cellar", new ArrayList<Kingdom>());
         	kingdomDecks.put("Market", new ArrayList<Kingdom>());
         	kingdomDecks.put("Militia", new ArrayList<Kingdom>());
@@ -116,18 +121,18 @@ public class DroolsTest {
         	kingdomDecks.put("Village", new ArrayList<Kingdom>());
         	kingdomDecks.put("Woodcutter", new ArrayList<Kingdom>());
         	kingdomDecks.put("Workshop", new ArrayList<Kingdom>());
-        	
+        	*/
         	for (j = 0; j < 10; j++){
-        		kingdomDecks.get("Cellar").add(new Cellar());
-        		kingdomDecks.get("Market").add(new Market());
-        		kingdomDecks.get("Militia").add(new Militia());
-        		kingdomDecks.get("Mine").add(new Mine());
-        		kingdomDecks.get("Moat").add(new Moat());
-        		kingdomDecks.get("Remodel").add(new Remodel());
-        		kingdomDecks.get("Smithy").add(new Smithy());
-        		kingdomDecks.get("Village").add(new Village());
-        		kingdomDecks.get("Woodcutter").add(new Woodcutter());
-        		kingdomDecks.get("Workshop").add(new Workshop());
+        		kingdomDecks.get(0).add(new Cellar());
+        		kingdomDecks.get(1).add(new Market());
+        		kingdomDecks.get(2).add(new Militia());
+        		kingdomDecks.get(3).add(new Mine());
+        		kingdomDecks.get(4).add(new Moat());
+        		kingdomDecks.get(5).add(new Remodel());
+        		kingdomDecks.get(6).add(new Smithy());
+        		kingdomDecks.get(7).add(new Village());
+        		kingdomDecks.get(8).add(new Woodcutter());
+        		kingdomDecks.get(9).add(new Workshop());
         	}
         	
         	//60 cooper
@@ -169,16 +174,7 @@ public class DroolsTest {
 					player.addToHand(player.getDeck().remove(0));
 			}
 			
-			//kSession.fireAllRules();
-			kSession.fireAllRules(0);
-			kSession.fireAllRules(new AgendaFilter() {
-				
-				@Override
-				public boolean accept(Match a) {
-					// TODO Auto-generated method stub
-					return false;
-				}
-			});
+			
 			
 			//TODO I don't understand how to structure the kingdom decks
 			
@@ -193,19 +189,36 @@ public class DroolsTest {
 			//Randomly determine the starting player.
 			int indexActualPlayer = 0;
 			actualPlayer = players.get(indexActualPlayer);
-			System.out.println("Now it's the turn of "+actualPlayer.getUsername());
-			
+			Random r = new Random();
+			int i = 0;
 			do{
+				System.out.println("Now it's the turn of "+actualPlayer.getUsername());
 				/*
 				 * PHASE 1: ACTION PHASE - facultative
 				 */
+				
+				/* Actual player plays a random card from his/her hand */
+				
+				int whichCard = r.nextInt(actualPlayer.getHand().size());
+				
+				
 				kSession.insert(actualPlayer);
-				kSession.insert(new Smithy());
+				kSession.insert(actualPlayer.getHand().remove(whichCard));
 				kSession.insert(Action.USE);
 				kSession.fireAllRules();
 				/*
 				 * PHASE 2: BUY PHASE
 				 */
+				
+				/* Actual player buys a random card from one of the supplies */
+				
+				int whichDeck = r.nextInt(10);
+				
+				kSession.insert(actualPlayer);
+				kSession.insert(kingdomDecks.get(whichDeck).remove(0));
+				kSession.insert(Action.BUY);
+				kSession.fireAllRules();
+				
 				
 				/*
 				 * PHASE 3: CLEAN-UP PHASE
@@ -220,8 +233,8 @@ public class DroolsTest {
 				else
 					indexActualPlayer++;
 				actualPlayer = players.get(indexActualPlayer);
-
-			}while(provinceDeck.size() == 0 /*&& any 3 Supply piles are empty*/);
+				i++;
+			}while(i < 100  /* provinceDeck.size() == 0 */ /*&& any 3 Supply piles are empty*/);
 			
 			/*
 			████████╗██╗  ██╗███████╗    ██╗    ██╗██╗███╗   ██╗███╗   ██╗███████╗██████╗     ██╗███████╗

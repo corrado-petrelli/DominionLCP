@@ -3,5 +3,9 @@ package com.project;
 public enum Action {
 	DRAW,
 	USE,
-	SHUFFLE
+	SHUFFLE,
+	COIN,
+	BUY,
+	ACTION,
+	GET
 }
