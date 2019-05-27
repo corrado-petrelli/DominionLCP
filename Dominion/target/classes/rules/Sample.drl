@@ -9,9 +9,16 @@ import com.project.cards.victories.*;
 import com.project.cards.curses.*;
 import java.util.*;
 
+//List of trash cards
 global List<Card> trashPile;
+//Random logic
 global Random gameLogic;
 
+
+/*
+		FUNCTIONS
+*/
+//A Player *p* draw *amound* cards from the deck
 function void draw(Player p, int amount) {
 	for(int i = 0; i < amount; i++) {
 		p.getHand().add(p.getDeck().remove(0));
@@ -19,22 +26,25 @@ function void draw(Player p, int amount) {
 	System.out.println(p.getUsername() + " drew " + amount + " cards.");
 }
 
+//A player *p* obtain *amount* virtual coins
 function void coin(Player p, int amount) {
 	p.setVirtualCoins(amount);
 	System.out.println(p.getUsername() + " obtained " + amount + " coins");
 }
 
+//A player *p* buy a card *c*
 function void buy(Player p, Card c) {
 	p.getDiscard().add(c);
 	System.out.println(p.getUsername() + " bought " + c.getName());
 }
 
+//A player *p* is cursed!
 function void beCursed(Player p) {
 	p.getDiscard().add(new com.project.cards.curses.Curse());
 	System.out.println(p.getUsername() + " obtained a Curse");
 }
 
-
+//A player *p* discard *amount* card (in random way)
 function void discard(Player p, int amount) {
 	Random r = new Random();
 	for(int i = 0; i < amount; i++) {
@@ -43,6 +53,7 @@ function void discard(Player p, int amount) {
 	System.out.println(p.getUsername() + " discarded " + amount + " cards.");
 }
 
+//A player *p* add from discard pile *amount* card in random way
 function void addFromDiscardPile(Player p, int amount) {
 	Random r = new Random();
 	for(int i = 0; i < amount; i++) {
@@ -53,10 +64,12 @@ function void addFromDiscardPile(Player p, int amount) {
 	System.out.println(p.getUsername() + " added a total of " + amount + " cards from his/her discard pile.");
 }
 
+
 function void addActions(Player p, int amount) {
 	p.setActions(p.getActions()+amount);
 	System.out.println(p.getUsername() + " can do " + amount + " more actions.");
 }
+
 
 function void addPurchase(Player p, int amount) {
 	p.setPurchases(p.getPurchases()+amount);
@@ -68,6 +81,15 @@ function void trash(Player p, Card c) {
 	p.getHand().remove(index);
 	trashPile.add(c);
 }
+*/
+
+
+
+
+/*
+--------------------------------------
+		PLAY TREASURES
+--------------------------------------
 */
 
 rule "Play Copper card"
@@ -109,6 +131,13 @@ rule "Play Gold card"
 		retract($action)
 end
 
+/*
+
+--------------------------------------
+		BUY VICTORIES
+--------------------------------------
+                                                                                               
+*/
 rule "Buy Estate card"
 	when
 		$player : Player( $username : username )
@@ -159,6 +188,12 @@ rule "Play Witch card"
 end
 */
 
+
+/*
+--------------------------------------
+		PLAY AND BUY KINDOMS
+--------------------------------------
+*/
 rule "Play Cellar card"
 	when
 		$player : Player( $username : username )
