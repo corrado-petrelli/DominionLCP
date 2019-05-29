@@ -20,16 +20,28 @@ global Random gameLogic;
 */
 //A Player *p* draw *amound* cards from the deck
 function void draw(Player p, int amount) {
-	for(int i = 0; i < amount; i++) {
-		p.getHand().add(p.getDeck().remove(0));
-	}
+	if(p.getDeck().size() < amount) {
+					int deckSize = p.getDeck().size();
+					for(int h = 0; h < deckSize; h++)
+						p.addToHand(p.getDeck().remove(0));
+					// the remaining cards are drawn after shuffling together deck and discard
+					Collections.shuffle(p.getDiscard());
+					for (Card card : p.getDiscard()) {
+						p.addToDeck(card);
+					}
+					p.getDiscard().clear();
+					for(int j = 0; j < amount-deckSize; j++) 
+						p.addToHand(p.getDeck().remove(0));
+				} else 
+					for(int j = 0; j < 5; j++) 
+					p.addToHand(p.getDeck().remove(0));
 	System.out.println(p.getUsername() + " drew " + amount + " cards.");
 }
 
 //A player *p* obtain *amount* virtual coins
 function void coin(Player p, int amount) {
-	p.setVirtualCoins(amount);
-	System.out.println(p.getUsername() + " obtained " + amount + " coins");
+	p.setVirtualCoins(p.getVirtualCoins()+amount);
+	System.out.println(p.getUsername() + " obtained " + amount + " coins and has a total of:" + p.getVirtualCoins());
 }
 
 //A player *p* buy a card *c*
@@ -48,7 +60,7 @@ function void beCursed(Player p) {
 function void discard(Player p, int amount) {
 	Random r = new Random();
 	for(int i = 0; i < amount; i++) {
-		p.getHand().remove(r.nextInt(p.getHand().size()-1));
+		p.getHand().remove(r.nextInt(p.getHand().size()));
 	}
 	System.out.println(p.getUsername() + " discarded " + amount + " cards.");
 }
@@ -105,6 +117,18 @@ rule "Play Copper card"
 		retract($action)
 end
 
+rule "Buy Copper card"
+	when
+		$player : Player( $username : username )
+		$card : Copper(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
 rule "Play Silver card"
 	when
 		$player : Player( $username : username )
@@ -118,6 +142,18 @@ rule "Play Silver card"
 		retract($action)
 end
 
+rule "Buy Silver card"
+	when
+		$player : Player( $username : username )
+		$card : Silver(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
 rule "Play Gold card"
 	when
 		$player : Player( $username : username )
@@ -126,6 +162,18 @@ rule "Play Gold card"
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		coin($player,$amount);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Buy Gold card"
+	when
+		$player : Player( $username : username )
+		$card : Gold(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
 		retract($player)
 		retract($card)
 		retract($action)
@@ -191,7 +239,7 @@ end
 
 /*
 --------------------------------------
-		PLAY AND BUY KINDOMS
+		PLAY AND BUY KINGDOMS
 --------------------------------------
 */
 rule "Play Cellar card"
@@ -372,15 +420,18 @@ end
 rule "Play Militia card"
 	when
 		$player : Player( $username : username )
-		$card : Market(  )
+		$opponents : ArrayList(  )
+		$card : Militia(  )
 		$action : Action( this == Action.USE )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
-		draw($player,1);
-		addActions($player,1);
-		addPurchase($player,1);
-		coin($player,1);
+		coin($player,2);
+		for(Player p : $opponents) {
+			if(!p.getHand().contains(new Moat()))
+				discard(p,2);
+		}
 		retract($player)
+		retract($opponents)
 		retract($card)
 		retract($action)
 end
@@ -497,6 +548,33 @@ rule "Buy Workshop card"
 	when
 		$player : Player( $username : username )
 		$card : Workshop(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Play Library card"
+	when
+		$player : Player( $username : username )
+		$card : Library(  )
+		$action : Action( this == Action.USE )
+	then
+		int lastHandSize = $player.getHand().size();
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,Math.max(7,Math.abs(7-$player.getHand().size())));
+		// you may put cards aside as you draw and at the end discard them
+		retract($player)
+		retract($card)
+		retract($action)
+end
+
+rule "Buy Library card"
+	when
+		$player : Player( $username : username )
+		$card : Library(  )
 		$action : Action( this == Action.BUY )
 	then
 		buy($player,$card);

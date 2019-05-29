@@ -95,6 +95,7 @@ public class DroolsTest {
 			*/
         	
         	Map<Integer,ArrayList<Kingdom>> kingdomDecks = new HashMap<Integer,ArrayList<Kingdom>>();
+        	//Map<String,ArrayList<Kingdom>> kingdomDecks = new HashMap<String,ArrayList<Kingdom>>();
         	
 
         	/*
@@ -122,6 +123,22 @@ public class DroolsTest {
         	kingdomDecks.put("Woodcutter", new ArrayList<Kingdom>());
         	kingdomDecks.put("Workshop", new ArrayList<Kingdom>());
         	*/
+        	
+        	/*
+        	for (j = 0; j < 10; j++){
+        		kingdomDecks.get("Cellar").add(new Cellar());
+        		kingdomDecks.get("Market").add(new Market());
+        		kingdomDecks.get("Militia").add(new Militia());
+        		kingdomDecks.get("Mine").add(new Mine());
+        		kingdomDecks.get("Moat").add(new Moat());
+        		kingdomDecks.get("Remodel").add(new Remodel());
+        		kingdomDecks.get("Smithy").add(new Smithy());
+        		kingdomDecks.get("Village").add(new Village());
+        		kingdomDecks.get("Woodcutter").add(new Woodcutter());
+        		kingdomDecks.get("Workshop").add(new Workshop());
+        	}
+        	*/
+        	
         	for (j = 0; j < 10; j++){
         		kingdomDecks.get(0).add(new Cellar());
         		kingdomDecks.get(1).add(new Market());
@@ -210,10 +227,11 @@ public class DroolsTest {
 				 * PHASE 2: BUY PHASE
 				 */
 				
-				/* Actual player buys a random card from one of the supplies */
-				
+				/* Actual player buys a random card from one of the supplies
+				 * considering his/her amount of coins */
 				int whichDeck = r.nextInt(10);
-				
+				while(kingdomDecks.get(whichDeck).size() <= 0)
+					whichDeck = r.nextInt(10);
 				kSession.insert(actualPlayer);
 				kSession.insert(kingdomDecks.get(whichDeck).remove(0));
 				kSession.insert(Action.BUY);
@@ -224,6 +242,31 @@ public class DroolsTest {
 				 * PHASE 3: CLEAN-UP PHASE
 				 */
 				
+				/* Actual player discard his/her hand and draw 5 new cards from the deck */
+				
+				actualPlayer.setVirtualCoins(0);
+				actualPlayer.setActions(1);
+				actualPlayer.setPurchases(1);
+				for (Card card : actualPlayer.getHand()) {
+					actualPlayer.getDiscard().add(card);
+				}
+				actualPlayer.getHand().clear();
+				// Draw 5 other cards, if deck size < 5 use discard pile
+				if(actualPlayer.getDeck().size() < 5) {
+					int deckSize = actualPlayer.getDeck().size();
+					for(int h = 0; h < deckSize; h++)
+						actualPlayer.addToHand(actualPlayer.getDeck().remove(0));
+					// the remaining cards are drawn after shuffling together deck and discard
+					Collections.shuffle(actualPlayer.getDiscard());
+					for (Card card : actualPlayer.getDiscard()) {
+						actualPlayer.addToDeck(card);
+					}
+					actualPlayer.getDiscard().clear();
+					for(j = 0; j < 5-deckSize; j++) 
+						actualPlayer.addToHand(actualPlayer.getDeck().remove(0));
+				} else 
+					for(j = 0; j < 5; j++) 
+					actualPlayer.addToHand(actualPlayer.getDeck().remove(0));
 				
 				//Check here if 3 or more supply piles are empty
 				

@@ -8,6 +8,7 @@ public abstract class Treasure extends Card {
 	
 	public Treasure(String name, int cost, int value) {
 		super(name, "Treasure", null, cost);
+		this.value = value;
 	}
 
 	public int getValue() {
