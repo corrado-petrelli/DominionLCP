@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.drools.compiler.lang.DRL5Expressions.instanceof_key_return;
+
 import com.project.cards.Card;
 import com.project.cards.IVictoryCard;
 import com.project.cards.kingdoms.Kingdom;
@@ -106,9 +108,14 @@ public class Player implements Comparable<Player>{
 		return total;
 	}
 	
-	public void buy(Card cardToBuy)
-	{
-		if(cardToBuy.getCost() <= this.getTotalCoins()){
+	public void buy(Card cardToBuy){
+	int budget = this.getTotalCoins();
+	int updatedBudget = 0;
+		if(cardToBuy.getCost() <= budget){
+			updatedBudget = (budget- cardToBuy.getCost());
+			this.hand.add(cardToBuy);
+			this.deck.remove(cardToBuy);
+
 			/*
 			 * TODO
 			 * Check if cardToBuy cost > player's coin
@@ -117,9 +124,15 @@ public class Player implements Comparable<Player>{
 		}
 		else
 		{
-			//ERROR, YOU CAN'T BUY THIS CARD
-		}
-		
+     System.out.println("The card" + cardToBuy + "is to expensive");	
+     System.out.println("Your budget is :" + budget);
+     System.out.println("Your cards are :"+ hand);
+     
+}
+		this.deck.remove(cardToBuy);
+		// la carta deve essere aggiunta ad deck comune 
+		System.out.println("You have bought the"+ cardToBuy + "card!");	
+		System.out.println("Your new budget is"+ updatedBudget);	
 	}
 	
 	public void useCard(Kingdom kingdomToUse, List<Player> playersToAttack)
@@ -136,6 +149,8 @@ public class Player implements Comparable<Player>{
 	
 	public void discardCard(Card cardToDiscard){
 		if(this.hand.contains(cardToDiscard)){
+			this.discard.add(cardToDiscard);
+			this.hand.remove(cardToDiscard);
 			/*
 			 * TODO
 			 * 
@@ -145,7 +160,7 @@ public class Player implements Comparable<Player>{
 			 */
 		}
 		else{
-			//ERROR
+           System.out.println("The card" + cardToDiscard + " is non in your hand!");
 		}
 	}
 
