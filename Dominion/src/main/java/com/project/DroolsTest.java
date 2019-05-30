@@ -1,11 +1,11 @@
 package com.project;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Random;
 
 import org.kie.api.KieServices;
 import org.kie.api.event.rule.ObjectDeletedEvent;
@@ -36,30 +36,17 @@ public class DroolsTest {
 	//Useful to the Gardens card
 	public static Player actualPlayer;
 	
+	//To input
+	public static BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
+	
+	
     public static final void main(String[] args) {
         try {
 	        KieServices ks = KieServices.Factory.get();
     	    KieContainer kContainer = ks.getKieClasspathContainer();
         	KieSession kSession = kContainer.newKieSession("ksession-rules");
-
-
-        	int j = 0;
-        	List<Player> players = new ArrayList<Player>(3);
-        	players.add(new Player("Corrado"));
-        	players.add(new Player("Vincenzo"));
-        	players.add(new Player("Fulvio"));
         	
         	
-        	//DECKS: treasure 
-        	List<Copper> copperDeck = new ArrayList<>();
-        	List<Silver> silverDeck = new ArrayList<>();
-        	List<Gold> goldDeck = new ArrayList<>();
-        	//DECKS: victory
-        	List<Estate> estateDeck = new ArrayList<>();
-        	List<Duchy> duchyDeck = new ArrayList<>();
-        	List<Province> provinceDeck = new ArrayList<>();
-        	List<Curse> curseDeck = new ArrayList<>();
-        	List<Card> trashDeck = new ArrayList<>(0);
         	
         	/*
         	List<Kingdom> allKingdomCard = new ArrayList<>();
@@ -94,9 +81,6 @@ public class DroolsTest {
 
 			*/
         	
-        	Map<Integer,ArrayList<Kingdom>> kingdomDecks = new HashMap<Integer,ArrayList<Kingdom>>();
-        	//Map<String,ArrayList<Kingdom>> kingdomDecks = new HashMap<String,ArrayList<Kingdom>>();
-        	
 
         	/*
 				███████╗███████╗████████╗██╗   ██╗██████╗ 
@@ -106,95 +90,18 @@ public class DroolsTest {
 				███████║███████╗   ██║   ╚██████╔╝██║     
 				╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝                                    
         	 */
+        	int j = 0;
+        	List<Player> players = new ArrayList<Player>();
+        	players.add(new Player("Corrado"));
+        	players.add(new Player("Vincenzo"));
+        	players.add(new Player("Fulvio"));
         	
-        	//Create a configuration for kingdom decks
+        	//The setup is into the Table constructor
+        	Table table = new Table();
+        	//Initial cards distribution
+        	table.getCardsToThePlayers(players);
         	
-        	for(int i = 0; i < 10; i++)
-        		kingdomDecks.put(i, new ArrayList<Kingdom>());
-        	/*
-        	kingdomDecks.put("Cellar", new ArrayList<Kingdom>());
-        	kingdomDecks.put("Market", new ArrayList<Kingdom>());
-        	kingdomDecks.put("Militia", new ArrayList<Kingdom>());
-        	kingdomDecks.put("Mine", new ArrayList<Kingdom>());
-        	kingdomDecks.put("Moat", new ArrayList<Kingdom>());
-        	kingdomDecks.put("Remodel", new ArrayList<Kingdom>());
-        	kingdomDecks.put("Smithy", new ArrayList<Kingdom>());
-        	kingdomDecks.put("Village", new ArrayList<Kingdom>());
-        	kingdomDecks.put("Woodcutter", new ArrayList<Kingdom>());
-        	kingdomDecks.put("Workshop", new ArrayList<Kingdom>());
-        	*/
-        	
-        	/*
-        	for (j = 0; j < 10; j++){
-        		kingdomDecks.get("Cellar").add(new Cellar());
-        		kingdomDecks.get("Market").add(new Market());
-        		kingdomDecks.get("Militia").add(new Militia());
-        		kingdomDecks.get("Mine").add(new Mine());
-        		kingdomDecks.get("Moat").add(new Moat());
-        		kingdomDecks.get("Remodel").add(new Remodel());
-        		kingdomDecks.get("Smithy").add(new Smithy());
-        		kingdomDecks.get("Village").add(new Village());
-        		kingdomDecks.get("Woodcutter").add(new Woodcutter());
-        		kingdomDecks.get("Workshop").add(new Workshop());
-        	}
-        	*/
-        	
-        	for (j = 0; j < 10; j++){
-        		kingdomDecks.get(0).add(new Cellar());
-        		kingdomDecks.get(1).add(new Market());
-        		kingdomDecks.get(2).add(new Militia());
-        		kingdomDecks.get(3).add(new Mine());
-        		kingdomDecks.get(4).add(new Moat());
-        		kingdomDecks.get(5).add(new Remodel());
-        		kingdomDecks.get(6).add(new Smithy());
-        		kingdomDecks.get(7).add(new Village());
-        		kingdomDecks.get(8).add(new Woodcutter());
-        		kingdomDecks.get(9).add(new Workshop());
-        	}
-        	
-        	//60 cooper
-        	for (j = 0; j < 60; j++)
-        		copperDeck.add(new Copper());
-        	//40 silver
-        	for (j = 0; j < 40; j++)
-        		silverDeck.add(new Silver());
-        	//30 gold
-        	for (j = 0; j < 30; j++)
-        		goldDeck.add(new Gold());
-			//20 curse
-        	for (j = 0; j < 20; j++)
-        		curseDeck.add(new Curse());
-			//12 estate
-        	//12 duchy
-        	//12 province
-        	for (j = 0; j < 12; j++){
-        		estateDeck.add(new Estate());
-        		provinceDeck.add(new Province());
-        		duchyDeck.add(new Duchy());
-        	}        		
-			
-			
-        	
-			//Each player starts the game with the same cards:
-			//7 coppers	& 3 estates
-			//Each player	shuffles these cards and places them (his Deck)
-			//face-down in his play area (the area near him on the table).
-			//Now, each player draws 5 cards from his Deck. These cards are the
-			//player’s hand.
-			for (Player player : players) {
-				for(j = 0; j < 7; j++)
-					player.addToDeck(copperDeck.remove(0));
-				for(j = 0; j < 3; j++)
-					player.addToDeck(estateDeck.remove(0));
-				player.shuffleDeck();
-				for(j = 0; j < 5; j++)
-					player.addToHand(player.getDeck().remove(0));
-			}
-			
-			
-			
-			//TODO I don't understand how to structure the kingdom decks
-			
+			     	
 			/*
 				██████╗ ██╗      █████╗ ██╗   ██╗
 				██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝
@@ -204,71 +111,99 @@ public class DroolsTest {
 				╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   				                                 
 			 */
 			//Randomly determine the starting player.
+        	Collections.shuffle(players);
 			int indexActualPlayer = 0;
 			actualPlayer = players.get(indexActualPlayer);
-			Random r = new Random();
-			int i = 0;
+			
+			int numberOfRounds = 0;
 			do{
 				System.out.println("Now it's the turn of "+actualPlayer.getUsername());
+				actualPlayer.setActions(1);
+				actualPlayer.setPurchases(1);;
 				/*
-				 * PHASE 1: ACTION PHASE - facultative
+					 █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗    ██████╗ ██╗  ██╗ █████╗ ███████╗███████╗
+					██╔══██╗██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║    ██╔══██╗██║  ██║██╔══██╗██╔════╝██╔════╝
+					███████║██║        ██║   ██║██║   ██║██╔██╗ ██║    ██████╔╝███████║███████║███████╗█████╗  
+					██╔══██║██║        ██║   ██║██║   ██║██║╚██╗██║    ██╔═══╝ ██╔══██║██╔══██║╚════██║██╔══╝  
+					██║  ██║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║    ██║     ██║  ██║██║  ██║███████║███████╗
+					╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝    ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝
+				 */
+				System.out.println(Color.CYAN_BOLD);
+				System.out.println(Color.BLACK_BACKGROUND);
+				System.out.println("********************");
+				System.out.println("****ACTION PHASE****");
+				System.out.println("********************");
+				System.out.println(Color.RESET);
+				
+				int actualActions = 0;
+				// Actual player plays a card from his/her hand
+				do{
+					int scelta = choiceActionPhase();
+					
+					//If the player chose a card delete it from his/her hand and play it
+					if(scelta != 0){
+						int indexOfChosenCard = scelta - 1;
+						Card chosenCard = actualPlayer.getHand().get(indexOfChosenCard);
+						System.out.println(actualPlayer.getUsername()+" chose "+chosenCard);
+						kSession.insert(actualPlayer);
+						kSession.insert(chosenCard);
+						kSession.insert(Action.USE);
+						kSession.fireAllRules();
+					}
+					else
+						System.out.println(actualPlayer.getUsername()+ " skip this phase");
+					
+					actualActions++;
+				}while(actualActions < actualPlayer.getActions());
+				/*
+					██████╗ ██╗   ██╗██╗   ██╗    ██████╗ ██╗  ██╗ █████╗ ███████╗███████╗
+					██╔══██╗██║   ██║╚██╗ ██╔╝    ██╔══██╗██║  ██║██╔══██╗██╔════╝██╔════╝
+					██████╔╝██║   ██║ ╚████╔╝     ██████╔╝███████║███████║███████╗█████╗  
+					██╔══██╗██║   ██║  ╚██╔╝      ██╔═══╝ ██╔══██║██╔══██║╚════██║██╔══╝  
+					██████╔╝╚██████╔╝   ██║       ██║     ██║  ██║██║  ██║███████║███████╗
+					╚═════╝  ╚═════╝    ╚═╝       ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝
+					                                                                      
+				 */
+				System.out.println(Color.CYAN_BOLD);
+				System.out.println(Color.BLACK_BACKGROUND);
+				System.out.println("*********************");
+				System.out.println("******BUY PHASE******");
+				System.out.println("*********************");
+				System.out.println(Color.RESET);
+				// Actual player buys a random card from one of the supplies
+				int actualPurchases = 0;
+				do{
+					Card chosenCard = choiceBuyPhase(table);
+					kSession.insert(actualPlayer);
+					kSession.insert(chosenCard);
+					kSession.insert(Action.BUY);
+					kSession.fireAllRules();
+					actualPurchases++;
+				}while(actualPurchases < actualPlayer.getPurchases());
+				
+				/*
+				 ██████╗██╗     ███████╗ █████╗ ███╗   ██╗      ██╗   ██╗██████╗     ██████╗ ██╗  ██╗ █████╗ ███████╗███████╗
+				██╔════╝██║     ██╔════╝██╔══██╗████╗  ██║      ██║   ██║██╔══██╗    ██╔══██╗██║  ██║██╔══██╗██╔════╝██╔════╝
+				██║     ██║     █████╗  ███████║██╔██╗ ██║█████╗██║   ██║██████╔╝    ██████╔╝███████║███████║███████╗█████╗  
+				██║     ██║     ██╔══╝  ██╔══██║██║╚██╗██║╚════╝██║   ██║██╔═══╝     ██╔═══╝ ██╔══██║██╔══██║╚════██║██╔══╝  
+				╚██████╗███████╗███████╗██║  ██║██║ ╚████║      ╚██████╔╝██║         ██║     ██║  ██║██║  ██║███████║███████╗
+				 ╚═════╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝       ╚═════╝ ╚═╝         ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝
 				 */
 				
-				/* Actual player plays a random card from his/her hand */
+				System.out.println(Color.CYAN_BOLD);
+				System.out.println(Color.BLACK_BACKGROUND);
+				System.out.println("**************************");
+				System.out.println("******CLEAN-UP PHASE******");
+				System.out.println("**************************");
+				System.out.println(Color.RESET);
 				
-				int whichCard = r.nextInt(actualPlayer.getHand().size());
-				
-				
-				kSession.insert(actualPlayer);
-				kSession.insert(actualPlayer.getHand().remove(whichCard));
-				kSession.insert(Action.USE);
-				kSession.fireAllRules();
-				/*
-				 * PHASE 2: BUY PHASE
-				 */
-				
-				/* Actual player buys a random card from one of the supplies
-				 * considering his/her amount of coins */
-				int whichDeck = r.nextInt(10);
-				while(kingdomDecks.get(whichDeck).size() <= 0)
-					whichDeck = r.nextInt(10);
-				kSession.insert(actualPlayer);
-				kSession.insert(kingdomDecks.get(whichDeck).remove(0));
-				kSession.insert(Action.BUY);
-				kSession.fireAllRules();
+				System.out.println("TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+				//Check here if 3 or more supply piles are empty
 				
 				
-				/*
-				 * PHASE 3: CLEAN-UP PHASE
-				 */
+				
 				
 				/* Actual player discard his/her hand and draw 5 new cards from the deck */
-				
-				actualPlayer.setVirtualCoins(0);
-				actualPlayer.setActions(1);
-				actualPlayer.setPurchases(1);
-				for (Card card : actualPlayer.getHand()) {
-					actualPlayer.getDiscard().add(card);
-				}
-				actualPlayer.getHand().clear();
-				// Draw 5 other cards, if deck size < 5 use discard pile
-				if(actualPlayer.getDeck().size() < 5) {
-					int deckSize = actualPlayer.getDeck().size();
-					for(int h = 0; h < deckSize; h++)
-						actualPlayer.addToHand(actualPlayer.getDeck().remove(0));
-					// the remaining cards are drawn after shuffling together deck and discard
-					Collections.shuffle(actualPlayer.getDiscard());
-					for (Card card : actualPlayer.getDiscard()) {
-						actualPlayer.addToDeck(card);
-					}
-					actualPlayer.getDiscard().clear();
-					for(j = 0; j < 5-deckSize; j++) 
-						actualPlayer.addToHand(actualPlayer.getDeck().remove(0));
-				} else 
-					for(j = 0; j < 5; j++) 
-					actualPlayer.addToHand(actualPlayer.getDeck().remove(0));
-				
-				//Check here if 3 or more supply piles are empty
 				
 				//Change the turn
 				if(indexActualPlayer == 2)
@@ -276,8 +211,8 @@ public class DroolsTest {
 				else
 					indexActualPlayer++;
 				actualPlayer = players.get(indexActualPlayer);
-				i++;
-			}while(i < 100  /* provinceDeck.size() == 0 */ /*&& any 3 Supply piles are empty*/);
+				numberOfRounds++;
+			}while(numberOfRounds < 100  /* provinceDeck.size() == 0 */ /*&& any 3 Supply piles are empty*/);
 			
 			/*
 			████████╗██╗  ██╗███████╗    ██╗    ██╗██╗███╗   ██╗███╗   ██╗███████╗██████╗     ██╗███████╗
@@ -293,6 +228,7 @@ public class DroolsTest {
 			//Reverse the list
 			Collections.reverse(players);
 			//Print the ranking
+			
 			System.out.println("***RANK***");
 			for (j = 0; j < players.size(); j++)
 				System.out.println((j+1)+"-\t"+players.get(j));
@@ -303,6 +239,110 @@ public class DroolsTest {
         } catch (Throwable t) {
             t.printStackTrace();
         }
+    }
+    
+    
+    public static int choiceActionPhase() throws NumberFormatException, IOException{
+    	int scelta = -1;
+		do{
+			System.out.println(Color.CYAN_BACKGROUND_BRIGHT+actualPlayer.getUsername()+Color.RESET+" may chose a card Kingdom to play: ");
+			System.out.println("   0 - Skip this phase");
+			for(int j = 0; j < actualPlayer.getHand().size(); j++)
+				System.out.println("   "+(j+1)+" - "+actualPlayer.getHand().get(j));
+			
+			System.out.print(Color.BLUE_BOLD+"Option: "+Color.RESET);
+			scelta = Integer.parseInt(console.readLine());
+			
+			
+			if(scelta == 0)
+				break;
+			else if(scelta > 0 && scelta <= actualPlayer.getHand().size() &&!(actualPlayer.getHand().get(scelta-1) instanceof Kingdom))
+				System.out.println(Color.RED_BRIGHT+"The chosen card is not a Kindom Card"+Color.RESET);
+			else if(scelta > 0 && scelta <= actualPlayer.getHand().size() && (actualPlayer.getHand().get(scelta-1) instanceof Kingdom))
+				break;
+			else
+				System.out.println(Color.RED_BRIGHT+"The option is not correct"+Color.RESET);
+		}while(true);
+		
+		return scelta;
+    }
+    
+    public static Card choiceBuyPhase(Table table) throws NumberFormatException, IOException{
+    	Card chosenCard = null;
+    	int scelta = -1;
+    	do{
+			System.out.println(Color.CYAN_BACKGROUND_BRIGHT+actualPlayer.getUsername()+Color.RESET+" may chose a card to buy: ");
+			System.out.println("1 - Copper card");
+			System.out.println("2 - Silver card");
+			System.out.println("3 - Gold card");
+			System.out.println("4 - Estate card");
+			System.out.println("5 - Duchy card");
+			System.out.println("6 - Province card");
+			System.out.println("7 - Curse card");
+			System.out.println("8 - Kindom card");
+			
+			System.out.print(Color.BLUE_BOLD+"Option: "+Color.RESET);
+			scelta = Integer.parseInt(console.readLine());
+			if(scelta < 0 || scelta > 8)
+				System.out.println(Color.RED_BRIGHT+"Option is not valid, you mush choose a valid card!"+Color.RESET);
+			else{				
+				switch(scelta){
+					case 1:
+						chosenCard = actualPlayer.getCopperCard(table);
+						break;
+					case 2:
+						chosenCard = actualPlayer.getSilverCard(table);
+						break;
+					case 3:
+						chosenCard = actualPlayer.getGoldCard(table);
+						break;
+					case 4:
+						chosenCard = actualPlayer.getEstateCard(table);
+						break;
+					case 5:
+						chosenCard = actualPlayer.getDuchyCard(table);
+						break;
+					case 6:
+						chosenCard = actualPlayer.getProvinceCard(table);
+						break;
+					case 7:
+						chosenCard = actualPlayer.getCurseCard(table);
+						break;
+					case 8:
+						chosenCard = actualPlayer.getKingdomCard(table);
+						break;
+				}
+				
+				if(chosenCard == null){
+					System.out.println(Color.RED_BRIGHT);
+					System.out.println("The chosen deck on the table is empty");
+					scelta = -1;
+					System.out.println(Color.RESET);
+				}
+				else{
+					//Questo dovrebbe essere actualPlayer.buy(...);
+					if(actualPlayer.getTotalCoins() < chosenCard.getCost()){
+						System.out.println(Color.RED_BRIGHT);
+						System.out.println(actualPlayer.getUsername()+" can't buy this card!");
+						System.out.println(actualPlayer.getUsername()+" has "+actualPlayer.getTotalCoins()+" coins!");
+						System.out.println(chosenCard.getName() +" costs "+chosenCard.getCost()+ " coins!");
+						scelta = -1;
+						System.out.println(Color.RESET);
+					}
+					else{
+						//TODO YOU MUST DELETE COINS!!!!! I DON'T KNOW HOW TO DO THIS
+						//FOR INSTANCE: IF I WANT TO BUY A CARD X (3 coins) AND I HAVE 2 SILVER (4 coins)
+						//HOW CAN I EXECUTE THIS PROCEDURE? I DISCARD 2 SILVER AND DRAW 1 COPPER? 
+
+						System.out.println(Color.RESET);
+						System.out.println(actualPlayer.getUsername()+ " bought this card: "+chosenCard);
+						System.out.println("Now "+actualPlayer.getUsername()+ " has "+actualPlayer.getTotalCoins()+ " coins");
+					}
+					
+				}
+			}
+		}while(scelta < 0 || scelta > 8);
+    	return chosenCard;
     }
 
 
