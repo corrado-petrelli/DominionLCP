@@ -10,10 +10,7 @@ public abstract class Kingdom extends Card{
 
 	@Override
 	public String toString() {
-		if(subtype == null)
-			return "Card [name=" + name + ", type=" + type + ", cost=" + cost + "]";
-		else
-			return "Card [name=" + name + ", type=" + type + ", subtype=" + subtype + ", cost=" + cost + "]";
+		return super.toString();
 	}
 	
 	

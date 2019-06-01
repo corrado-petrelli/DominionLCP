@@ -58,6 +58,7 @@ public class Table {
 	private List<Card> trashDeck = new ArrayList<>(0);
 
 	//Kingdoms
+	//It's better if keys are string when we deal with the decks during buy and clean-up phases
 	private Map<Integer, ArrayList<Kingdom>> kingdomDecks = new HashMap<Integer, ArrayList<Kingdom>>();
 
 
@@ -67,22 +68,17 @@ public class Table {
 	public Table() {
 		situation = 0;
 		int j = 0;
-		// Setup
-		for (j = 0; j < 10; j++)
-			kingdomDecks.put(j, new ArrayList<Kingdom>());
-		// Recommended Configuration
-		for (j = 0; j < 10; j++) {
-			kingdomDecks.get(0).add(new Cellar());
-			kingdomDecks.get(1).add(new Market());
-			kingdomDecks.get(2).add(new Militia());
-			kingdomDecks.get(3).add(new Mine());
-			kingdomDecks.get(4).add(new Moat());
-			kingdomDecks.get(5).add(new Remodel());
-			kingdomDecks.get(6).add(new Smithy());
-			kingdomDecks.get(7).add(new Village());
-			kingdomDecks.get(8).add(new Woodcutter());
-			kingdomDecks.get(9).add(new Workshop());
-		}
+		// Setup - Recommended Configuration
+		kingdomDecks.put(0, new ArrayList<Kingdom>() {{for(int i = 0; i < 10; i++) add(new Cellar());}});
+		kingdomDecks.put(1, new ArrayList<Kingdom>() {{for(int i = 0; i < 10; i++) add(new Market());}});
+		kingdomDecks.put(2, new ArrayList<Kingdom>(){{for(int i = 0; i < 10; i++) add(new Militia());}});
+		kingdomDecks.put(3, new ArrayList<Kingdom>(){{for(int i = 0; i < 10; i++) add(new Mine());}});
+		kingdomDecks.put(4, new ArrayList<Kingdom>(){{for(int i = 0; i < 10; i++) add(new Moat());}});
+		kingdomDecks.put(5, new ArrayList<Kingdom>(){{for(int i = 0; i < 10; i++) add(new Remodel());}});
+		kingdomDecks.put(6, new ArrayList<Kingdom>(){{for(int i = 0; i < 10; i++) add(new Smithy());}});
+		kingdomDecks.put(7, new ArrayList<Kingdom>(){{for(int i = 0; i < 10; i++) add(new Village());}});
+		kingdomDecks.put(8, new ArrayList<Kingdom>(){{for(int i = 0; i < 10; i++) add(new Woodcutter());}});
+		kingdomDecks.put(9, new ArrayList<Kingdom>(){{for(int i = 0; i < 10; i++) add(new Workshop());}});
 
 		// 60 cooper
 		for (j = 0; j < 60; j++)

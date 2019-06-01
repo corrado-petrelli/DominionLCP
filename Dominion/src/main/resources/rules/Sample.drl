@@ -2,6 +2,7 @@ package rules
 
 import com.project.Player;
 import com.project.Action;
+import com.project.Table;
 import com.project.cards.Card;
 import com.project.cards.kingdoms.*;
 import com.project.cards.treasures.*;
@@ -133,10 +134,10 @@ rule "Play Treasures card"
 end
 */
 
-rule "Play Copper card"
+rule "Play Treasure card"
 	when
 		$player : Player( $username : username )
-		$card : Copper( $amount : value )
+		$card : Treasure( $amount : value )
 		$action : Action( this == Action.USE )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
@@ -146,67 +147,6 @@ rule "Play Copper card"
 		retract($action)
 end
 
-rule "Buy Copper card"
-	when
-		$player : Player( $username : username )
-		$card : Copper(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
-
-rule "Play Silver card"
-	when
-		$player : Player( $username : username )
-		$card : Silver( $amount : value )
-		$action : Action( this == Action.USE )
-	then
-		System.out.println($username+" used "+$card.getName()+".");
-		coin($player,$amount);
-		retract($player)
-		retract($card)
-		retract($action)
-end
-
-rule "Buy Silver card"
-	when
-		$player : Player( $username : username )
-		$card : Silver(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
-
-rule "Play Gold card"
-	when
-		$player : Player( $username : username )
-		$card : Copper( $amount : value )
-		$action : Action( this == Action.USE )
-	then
-		System.out.println($username+" used "+$card.getName()+".");
-		coin($player,$amount);
-		retract($player)
-		retract($card)
-		retract($action)
-end
-
-rule "Buy Gold card"
-	when
-		$player : Player( $username : username )
-		$card : Gold(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
 
 /*
  _______  __   __  __   __                                                  
@@ -238,10 +178,11 @@ rule "Buy Victories card"
 end
 */
 
-rule "Buy Estate card"
-	when
+rule "Buy a (general) Card"
+	when 
 		$player : Player( $username : username )
-		$card : Estate(  )
+		$card : Card(  )
+		$table : Table(  )
 		$action : Action( this == Action.BUY )
 	then
 		buy($player,$card);
@@ -250,29 +191,7 @@ rule "Buy Estate card"
 		retract($action)
 end
 
-rule "Buy Duchy card"
-	when
-		$player : Player( $username : username )
-		$card : Duchy(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
 
-rule "Buy Province card"
-	when
-		$player : Player( $username : username )
-		$card : Province(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
 
 
 
@@ -317,28 +236,20 @@ end
 rule "Play Artisan card"
 	when
 		$player : Player( $username : username )
+		$table : Table(  )
 		$card : Artisan(  )
 		$action : Action( this == Action.USE )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
-		// gain a card to your hand costing up to 5
+		// gain a card to your hand costing up to 5 either from Treasure, Victory and Kingdom decks
+		
 		// put a card from your hand onto your deck
 		retract($player)
 		retract($card)
 		retract($action)
 end
 
-rule "Buy Artisan card"
-	when
-		$player : Player( $username : username )
-		$card : Artisan(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 rule "Play Adventurer card"
 	when
 		$player : Player( $username : username )
@@ -353,17 +264,6 @@ rule "Play Adventurer card"
 		retract($action)
 end
 
-rule "Buy Adventurer card"
-	when
-		$player : Player( $username : username )
-		$card : Adventurer(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
 rule "Play Bandit card"
 	when
 		$player : Player( $username : username )
@@ -380,17 +280,7 @@ rule "Play Bandit card"
 		retract($action)
 end
 
-rule "Buy Bandit card"
-	when
-		$player : Player( $username : username )
-		$card : Bandit(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 
 rule "Play Bureaucrat card"
 	when
@@ -413,17 +303,7 @@ rule "Play Bureaucrat card"
 		retract($action)
 end
 
-rule "Buy Bureaucrat card"
-	when
-		$player : Player( $username : username )
-		$card : Bureaucrat(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 
 rule "Play Cellar card"
 	when
@@ -439,17 +319,6 @@ rule "Play Cellar card"
 		retract($action)
 end
 
-rule "Buy Cellar card"
-	when
-		$player : Player( $username : username )
-		$card : Cellar(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
 rule "Play Chancellor card"
 	when
 		$player : Player( $username : username )
@@ -464,17 +333,7 @@ rule "Play Chancellor card"
 		retract($action)
 end
 
-rule "Buy Chancellor card"
-	when
-		$player : Player( $username : username )
-		$card : Chancellor(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 
 rule "Play Chapel card"
 	when
@@ -490,17 +349,7 @@ rule "Play Chapel card"
 		retract($action)
 end
 
-rule "Buy Chapel card"
-	when
-		$player : Player( $username : username )
-		$card : Chapel(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 rule "Play Councilroom card"
 	when
 		$player : Player( $username : username )
@@ -516,30 +365,10 @@ rule "Play Councilroom card"
 		retract($action)
 end
 
-rule "Buy Councilroom card"
-	when
-		$player : Player( $username : username )
-		$card : Councilroom(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
 
 
-rule "Buy Feast card"
-	when
-		$player : Player( $username : username )
-		$card : Feast(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
+
 rule "Play Feast card"
 	when
 		$player : Player( $username : username )
@@ -557,17 +386,7 @@ rule "Play Feast card"
 		retract($action)
 end
 
-rule "Buy Festival card"
-	when
-		$player : Player( $username : username )
-		$card : Festival(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 rule "Play Festival card"
 	when
 		$player : Player( $username : username )
@@ -583,17 +402,7 @@ rule "Play Festival card"
 		retract($action)
 end
 
-rule "Buy Gardens card"
-	when
-		$player : Player( $username : username )
-		$card : Gardens(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 rule "Play Gardens card"
 	when
 		$player : Player( $username : username )
@@ -605,17 +414,7 @@ rule "Play Gardens card"
 		retract($card)
 		retract($action)
 end
-rule "Buy Harbinger card"
-	when
-		$player : Player( $username : username )
-		$card : Harbinger(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 /*
 rule "Play Harbinger card"
 	when
@@ -664,17 +463,7 @@ rule "Play Laboratory card"
 		retract($action)
 end
 
-rule "Buy Laboratory card"
-	when
-		$player : Player( $username : username )
-		$card : Laboratory(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 rule "Play Library card"
 	when
 		$player : Player( $username : username )
@@ -683,6 +472,9 @@ rule "Play Library card"
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		// draw until you have 7 cards in hand,
+		int lastHandSize = $player.getHand().size();
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,Math.max(7,Math.abs(7-$player.getHand().size())));
 		// skipping any Action cards you choose to
 		// set them aside and discard them afterwards
 		//draw($player,?);
@@ -691,21 +483,7 @@ rule "Play Library card"
 		retract($action)
 end
 
-rule "Buy Library card"
-	when
-		$player : Player( $username : username )
-		$card : Library(  )
-		$action : Action( this == Action.BUY )
-	then
-		System.out.println($username+" used "+$card.getName()+".");
-		draw($player,1);
-		addActions($player,1);
-		addPurchase($player,1);
-		coin($player,1);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 rule "Play Market card"
 	when
 		$player : Player( $username : username )
@@ -738,6 +516,7 @@ rule "Play Mine card"
 		retract($card)
 		retract($action)
 end
+
 rule "Play Merchant card"
 	when
 		$player : Player( $username : username )
@@ -750,22 +529,12 @@ rule "Play Merchant card"
 		// the first time you play a Silver this turn 
 		// coin($player,1);
 		retract($player)
-		retract($opponents)
+		
 		retract($card)
 		retract($action)
 end
 
-rule "Buy Merchant card"
-	when
-		$player : Player( $username : username )
-		$card : Merchant(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 rule "Play Militia card"
 	when
 		$player : Player( $username : username )
@@ -785,20 +554,8 @@ rule "Play Militia card"
 		retract($action)
 end
 
-rule "Buy Militia card"
-	when
-		$player : Player( $username : username )
-		$card : Woodcutter(  )
-		$action : Action( this == Action.USE )
-	then
-		System.out.println($username+" used "+$card.getName()+".");
-		addPurchase($player,1);
-		coin($player,2);
-		retract($player)
-		retract($card)
-		retract($action)
-end
-rule "Play Mine card"
+
+rule "Play Workshop card"
 	when
 		$player : Player( $username : username )
 		$card : Workshop(  )
@@ -827,31 +584,8 @@ end
 |    _  ||   | | | |   ||   |_| ||       ||       || ||_|| |
 |___| |_||___| |_|  |__||_______||______| |_______||_|   |_|
 */
-/*
-rule "Buy Kingdom card"
-	when
-		$player : Player( $username : username )
-		$card : Kingdom(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
-*/
 
-rule "Buy Cellar card"
-	when
-		$player : Player( $username : username )
-		$card : Cellar(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 rule "Play Moat card"
 	when
 		$player : Player( $username : username )
@@ -868,17 +602,7 @@ rule "Play Moat card"
 		retract($action)
 end
 
-rule "Buy Moat card"
-	when
-		$player : Player( $username : username )
-		$card : Moat(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 rule "Play Moneylender card"
 	when
 		$player : Player( $username : username )
@@ -892,17 +616,7 @@ rule "Play Moneylender card"
 		retract($action)
 end
 
-rule "Buy Moneylender card"
-	when
-		$player : Player( $username : username )
-		$card : Moneylender(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 rule "Play Poacher card"
 	when
 		$player : Player( $username : username )
@@ -919,17 +633,7 @@ rule "Play Poacher card"
 		retract($action)
 end
 
-rule "Buy Poacher card"
-	when
-		$player : Player( $username : username )
-		$card : Poacher(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 rule "Play Remodel card"
 	when
 		$player : Player( $username : username )
@@ -942,17 +646,7 @@ rule "Play Remodel card"
 		retract($action)
 end
 
-rule "Buy Moat card"
-	when
-		$player : Player( $username : username )
-		$card : Moat(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 rule "Play Sentry card"
 	when
 		$player : Player( $username : username )
@@ -970,17 +664,7 @@ rule "Play Sentry card"
 		retract($action)
 end
 
-rule "Buy Sentry card"
-	when
-		$player : Player( $username : username )
-		$card : Sentry(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 rule "Play Smithy card"
 	when
 		$player : Player( $username : username )
@@ -995,28 +679,8 @@ rule "Play Smithy card"
 		retract($action)
 end
 
-rule "Buy Smithy card"
-	when
-		$player : Player( $username : username )
-		$card : Smithy(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
-rule "Buy Spy card"
-	when
-		$player : Player( $username : username )
-		$card : Spy(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
+
 
 rule "Play Spy card"
 	when
@@ -1050,17 +714,7 @@ rule "Play Thief card"
 		retract($action)
 end
 
-rule "Buy Thief card"
-	when
-		$player : Player( $username : username )
-		$card : Thief(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 rule "Play Throneroom card"
 	when
 		$player : Player( $username : username )
@@ -1074,17 +728,7 @@ rule "Play Throneroom card"
 		retract($action)
 end
 
-rule "Buy Throneroom card"
-	when
-		$player : Player( $username : username )
-		$card : Throneroom(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 
 rule "Play Vassal card"
 	when
@@ -1102,17 +746,7 @@ rule "Play Vassal card"
 		retract($action)
 end
 
-rule "Buy Vassal card"
-	when
-		$player : Player( $username : username )
-		$card : Vassal(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 
 rule "Play Village card"
 	when
@@ -1128,17 +762,7 @@ rule "Play Village card"
 		retract($action)
 end
 
-rule "Buy Village card"
-	when
-		$player : Player( $username : username )
-		$card : Village(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 rule "Play Witch card"
 	when
 		$player : Player( $username : username )
@@ -1152,17 +776,7 @@ rule "Play Witch card"
 		retract($card)
 		retract($action)
 end
-rule "Buy Witch card"
-	when
-		$player : Player( $username : username )
-		$card : Witch(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
+
 
 rule "Play Woodcutter card"
 	when
@@ -1175,63 +789,4 @@ rule "Play Woodcutter card"
 		retract($card)
 		retract($action)
 end
-rule "Buy Woodcutter card"
-	when
-		$player : Player( $username : username )
-		$card : Smithy(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
-rule "Play Workshop card"
-	when
-		$player : Player( $username : username )
-		$card : Market(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
-rule "Buy Workshop card"
-	when
-		$player : Player( $username : username )
-		$card : Workshop(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
 
-rule "Play Library card"
-	when
-		$player : Player( $username : username )
-		$card : Library(  )
-		$action : Action( this == Action.USE )
-	then
-		int lastHandSize = $player.getHand().size();
-		System.out.println($username+" used "+$card.getName()+".");
-		draw($player,Math.max(7,Math.abs(7-$player.getHand().size())));
-		// you may put cards aside as you draw and at the end discard them
-		retract($player)
-		retract($card)
-		retract($action)
-end
-
-rule "Buy Library card"
-	when
-		$player : Player( $username : username )
-		$card : Library(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end

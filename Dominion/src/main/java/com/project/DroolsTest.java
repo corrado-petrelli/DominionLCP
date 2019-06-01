@@ -24,6 +24,7 @@ import com.project.cards.kingdoms.*;
 import com.project.cards.treasures.Copper;
 import com.project.cards.treasures.Gold;
 import com.project.cards.treasures.Silver;
+import com.project.cards.treasures.Treasure;
 import com.project.cards.victories.Duchy;
 import com.project.cards.victories.Estate;
 import com.project.cards.victories.Province;
@@ -98,6 +99,7 @@ public class DroolsTest {
         	
         	//The setup is into the Table constructor
         	Table table = new Table();
+        	kSession.insert(table);
         	//Initial cards distribution
         	table.getCardsToThePlayers(players);
         	
@@ -116,6 +118,8 @@ public class DroolsTest {
 			actualPlayer = players.get(indexActualPlayer);
 			
 			int numberOfRounds = 0;
+			int howManyDecksAreEmpty = 0;
+			boolean isProvinceDeckEmpty = false;
 			do{
 				System.out.println("Now it's the turn of "+actualPlayer.getUsername());
 				actualPlayer.setActions(1);
@@ -170,8 +174,14 @@ public class DroolsTest {
 				System.out.println("******BUY PHASE******");
 				System.out.println("*********************");
 				System.out.println(Color.RESET);
-				// Actual player buys a random card from one of the supplies
+				// Actual player buys a card from one of the supplies
 				int actualPurchases = 0;
+				// Play all the treasure cards in hand
+				for(Card c : actualPlayer.getHand()) {
+		    		if(c instanceof Treasure)
+		    			actualPlayer.setVirtualCoins(actualPlayer.getVirtualCoins() + ((Treasure)c).getValue());
+		    			actualPlayer.getDiscard().add(c);
+		    	}
 				do{
 					Card chosenCard = choiceBuyPhase(table);
 					kSession.insert(actualPlayer);
@@ -180,6 +190,7 @@ public class DroolsTest {
 					kSession.fireAllRules();
 					actualPurchases++;
 				}while(actualPurchases < actualPlayer.getPurchases());
+				
 				
 				/*
 				 ██████╗██╗     ███████╗ █████╗ ███╗   ██╗      ██╗   ██╗██████╗     ██████╗ ██╗  ██╗ █████╗ ███████╗███████╗
@@ -197,13 +208,35 @@ public class DroolsTest {
 				System.out.println("**************************");
 				System.out.println(Color.RESET);
 				
-				System.out.println("TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
-				//Check here if 3 or more supply piles are empty
-				
-				
-				
-				
 				/* Actual player discard his/her hand and draw 5 new cards from the deck */
+				actualPlayer.getDiscard().addAll(actualPlayer.getHand());
+				actualPlayer.getHand().clear();
+				int s = actualPlayer.getDeck().size();
+				for(int i = 0; i < Math.min(5, s); i++)
+					actualPlayer.getHand().add(actualPlayer.getDeck().remove(0));
+				if(actualPlayer.getHand().size() < 5) {
+					Collections.shuffle(actualPlayer.getDiscard());
+					actualPlayer.getDeck().addAll(actualPlayer.getDiscard());
+					int p = 5 - actualPlayer.getHand().size();
+					for(int i = 0; i < p; i++)
+						actualPlayer.getHand().add(actualPlayer.getDeck().remove(0));
+				}
+				
+				// Check end game condition
+				System.out.println("TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+				//Check here if 3 or more supply piles are empty or if Province supply is empty
+ 				howManyDecksAreEmpty = 0;
+ 				isProvinceDeckEmpty = false;
+ 				if(table.getCopperDeck().isEmpty()) howManyDecksAreEmpty++;
+ 				if(table.getCurseDeck().isEmpty()) howManyDecksAreEmpty++;
+ 				if(table.getDuchyDeck().isEmpty()) howManyDecksAreEmpty++;
+ 				if(table.getEstateDeck().isEmpty()) howManyDecksAreEmpty++;
+ 				if(table.getGoldDeck().isEmpty()) howManyDecksAreEmpty++;
+ 				if(table.getProvinceDeck().isEmpty()) { howManyDecksAreEmpty++; isProvinceDeckEmpty = true; }
+ 				if(table.getSilverDeck().isEmpty()) howManyDecksAreEmpty++;
+ 				for(int i = 0; i < table.getKingdomDecks().size(); i++)
+ 					if(table.getKingdomDecks().get(i).isEmpty()) howManyDecksAreEmpty++;
+ 				
 				
 				//Change the turn
 				if(indexActualPlayer == 2)
@@ -212,7 +245,7 @@ public class DroolsTest {
 					indexActualPlayer++;
 				actualPlayer = players.get(indexActualPlayer);
 				numberOfRounds++;
-			}while(numberOfRounds < 100  /* provinceDeck.size() == 0 */ /*&& any 3 Supply piles are empty*/);
+			}while(howManyDecksAreEmpty < 3 || !isProvinceDeckEmpty);
 			
 			/*
 			████████╗██╗  ██╗███████╗    ██╗    ██╗██╗███╗   ██╗███╗   ██╗███████╗██████╗     ██╗███████╗
@@ -248,7 +281,9 @@ public class DroolsTest {
 			System.out.println(Color.CYAN_BACKGROUND_BRIGHT+actualPlayer.getUsername()+Color.RESET+" may chose a card Kingdom to play: ");
 			System.out.println("   0 - Skip this phase");
 			for(int j = 0; j < actualPlayer.getHand().size(); j++)
-				System.out.println("   "+(j+1)+" - "+actualPlayer.getHand().get(j));
+				// instead of putting an if else at the end of the loop we can check this before to avoid errors since the beginning
+				if(actualPlayer.getHand().get(j) instanceof Kingdom)
+					System.out.println("   "+(j+1)+" - "+actualPlayer.getHand().get(j));
 			
 			System.out.print(Color.BLUE_BOLD+"Option: "+Color.RESET);
 			scelta = Integer.parseInt(console.readLine());
@@ -270,16 +305,22 @@ public class DroolsTest {
     public static Card choiceBuyPhase(Table table) throws NumberFormatException, IOException{
     	Card chosenCard = null;
     	int scelta = -1;
+    	int currentCoins = 0;
+    	int currentPurchases = 0;
+    	
+    	
+    	currentCoins = actualPlayer.getVirtualCoins();
+    	currentPurchases = actualPlayer.getPurchases();
     	do{
-			System.out.println(Color.CYAN_BACKGROUND_BRIGHT+actualPlayer.getUsername()+Color.RESET+" may chose a card to buy: ");
-			System.out.println("1 - Copper card");
-			System.out.println("2 - Silver card");
-			System.out.println("3 - Gold card");
-			System.out.println("4 - Estate card");
-			System.out.println("5 - Duchy card");
-			System.out.println("6 - Province card");
-			System.out.println("7 - Curse card");
-			System.out.println("8 - Kindom card");
+			System.out.println(Color.CYAN_BACKGROUND_BRIGHT+actualPlayer.getUsername()+Color.RESET+" may chose a card to buy: coins("+actualPlayer.getVirtualCoins()+")");
+			System.out.println("1 - Copper card (0)");
+			System.out.println("2 - Silver card (3)");
+			System.out.println("3 - Gold card (6)");
+			System.out.println("4 - Estate card (2)");
+			System.out.println("5 - Duchy card (5)");
+			System.out.println("6 - Province card (8)");
+			System.out.println("7 - Curse card (0)");
+			System.out.println("8 - Kingdom card");
 			
 			System.out.print(Color.BLUE_BOLD+"Option: "+Color.RESET);
 			scelta = Integer.parseInt(console.readLine());
@@ -287,6 +328,7 @@ public class DroolsTest {
 				System.out.println(Color.RED_BRIGHT+"Option is not valid, you mush choose a valid card!"+Color.RESET);
 			else{				
 				switch(scelta){
+				// the card will be not null only if player can actually buy it
 					case 1:
 						chosenCard = actualPlayer.getCopperCard(table);
 						break;
@@ -315,7 +357,7 @@ public class DroolsTest {
 				
 				if(chosenCard == null){
 					System.out.println(Color.RED_BRIGHT);
-					System.out.println("The chosen deck on the table is empty");
+					System.out.println("The chosen deck on the table is empty or you can't afford that card");
 					scelta = -1;
 					System.out.println(Color.RESET);
 				}
@@ -330,6 +372,8 @@ public class DroolsTest {
 						System.out.println(Color.RESET);
 					}
 					else{
+						actualPlayer.getDiscard().add(chosenCard);
+						actualPlayer.setPurchases(actualPlayer.getPurchases() - 1);
 						//TODO YOU MUST DELETE COINS!!!!! I DON'T KNOW HOW TO DO THIS
 						//FOR INSTANCE: IF I WANT TO BUY A CARD X (3 coins) AND I HAVE 2 SILVER (4 coins)
 						//HOW CAN I EXECUTE THIS PROCEDURE? I DISCARD 2 SILVER AND DRAW 1 COPPER? 

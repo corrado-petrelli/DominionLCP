@@ -194,43 +194,43 @@ public class Player implements Comparable<Player>{
 	}
 	
 	public Copper getCopperCard(Table table) {
-		if (table.getCopperDeck().size() > 0)
+		if (table.getCopperDeck().size() > 0 && this.virtualCoins >= new Copper().getCost())
 			return table.getCopperDeck().remove(0);
 		return null;
 	}
 
 	public Silver getSilverCard(Table table) {
-		if (table.getSilverDeck().size() > 0)
+		if (table.getSilverDeck().size() > 0 && this.virtualCoins >= new Silver().getCost())
 			return table.getSilverDeck().remove(0);
 		return null;
 	}
 
 	public Gold getGoldCard(Table table) {
-		if (table.getGoldDeck().size() > 0)
+		if (table.getGoldDeck().size() > 0 && this.virtualCoins >= new Gold().getCost())
 			return table.getGoldDeck().remove(0);
 		return null;
 	}
 
 	public Estate getEstateCard(Table table) {
-		if (table.getEstateDeck().size() > 0)
+		if (table.getEstateDeck().size() > 0 && this.virtualCoins >= new Estate().getCost())
 			return table.getEstateDeck().remove(0);
 		return null;
 	}
 
 	public Duchy getDuchyCard(Table table) {
-		if (table.getDuchyDeck().size() > 0)
+		if (table.getDuchyDeck().size() > 0 && this.virtualCoins >= new Duchy().getCost())
 			return table.getDuchyDeck().remove(0);
 		return null;
 	}
 
 	public Province getProvinceCard(Table table) {
-		if (table.getProvinceDeck().size() > 0)
+		if (table.getProvinceDeck().size() > 0 && this.virtualCoins >= new Province().getCost())
 			return table.getProvinceDeck().remove(0);
 		return null;
 	}
 
 	public Curse getCurseCard(Table table) {
-		if (table.getCurseDeck().size() > 0)
+		if (table.getCurseDeck().size() > 0 && this.virtualCoins >= new Curse().getCost())
 			return table.getCurseDeck().remove(0);
 		return null;
 	}
@@ -245,9 +245,9 @@ public class Player implements Comparable<Player>{
 			for (Entry<Integer, ArrayList<Kingdom>> entry : table.getKingdomDecks().entrySet()) {
 					
 				if(entry.getValue().size() == 0)
-					System.out.println("   " + i + " - FINISHED ");
+					System.out.println("   " + i + " - " + entry.getValue().get(0)+ " - FINISHED ");
 				else
-					System.out.println("   " + i + " - " + entry.getValue().get(0).getClass().getName()+ " - remained: "+ entry.getValue().size());
+					System.out.println("   " + i + " - " + entry.getValue().get(0)+ " - remained: "+ entry.getValue().size());
 				
 				++i;
 			}
@@ -255,7 +255,7 @@ public class Player implements Comparable<Player>{
 			scelta = Integer.parseInt(console.readLine());
 		} while (scelta < 0 || scelta >= table.getKingdomDecks().entrySet().size());
 
-		if(table.getKingdomDecks().get(scelta).size() > 0)
+		if(table.getKingdomDecks().get(scelta).size() > 0 && this.virtualCoins >= table.getKingdomDecks().get(scelta).get(0).getCost())
 			return table.getKingdomDecks().get(scelta).remove(0);
 		else
 			return null;

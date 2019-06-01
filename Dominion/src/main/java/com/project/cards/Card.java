@@ -1,6 +1,11 @@
 package com.project.cards;
 
 public abstract class Card {
+	@Override
+	public String toString() {
+		
+		return name + " (" + cost + ")";
+	}
 	protected String name;
 	protected String type;
 	protected String subtype;
