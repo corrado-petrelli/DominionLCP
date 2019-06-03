@@ -177,10 +177,13 @@ public class DroolsTest {
 				// Actual player buys a card from one of the supplies
 				int actualPurchases = 0;
 				// Play all the treasure cards in hand
-				for(Card c : actualPlayer.getHand()) {
-		    		if(c instanceof Treasure)
+				for(int i = 0; i < actualPlayer.getHand().size(); i++) {
+					Card c = actualPlayer.getHand().get(i);
+		    		if(c instanceof Treasure) {
 		    			actualPlayer.setVirtualCoins(actualPlayer.getVirtualCoins() + ((Treasure)c).getValue());
 		    			actualPlayer.getDiscard().add(c);
+		    			// TODO Remove the played Treasure cards from the hand
+		    		}
 		    	}
 				do{
 					Card chosenCard = choiceBuyPhase(table);
@@ -211,14 +214,21 @@ public class DroolsTest {
 				/* Actual player discard his/her hand and draw 5 new cards from the deck */
 				actualPlayer.getDiscard().addAll(actualPlayer.getHand());
 				actualPlayer.getHand().clear();
-				int s = actualPlayer.getDeck().size();
-				for(int i = 0; i < Math.min(5, s); i++)
-					actualPlayer.getHand().add(actualPlayer.getDeck().remove(0));
-				if(actualPlayer.getHand().size() < 5) {
+				// Deck has less than 5 cards, so draw the size of the deck and the remaining from the discard pile
+				if(actualPlayer.getDeck().size() < 5) {
+					
+					int size = actualPlayer.getDeck().size();
+					int discardDraw = 5 - size;
+					for(int i = 0; i < size; i++)
+						actualPlayer.getHand().add(actualPlayer.getDeck().remove(0));
 					Collections.shuffle(actualPlayer.getDiscard());
 					actualPlayer.getDeck().addAll(actualPlayer.getDiscard());
-					int p = 5 - actualPlayer.getHand().size();
-					for(int i = 0; i < p; i++)
+					actualPlayer.getDiscard().clear();
+					for(int i = 0; i < discardDraw; i++)
+						actualPlayer.getHand().add(actualPlayer.getDeck().remove(0));
+				} else {
+					// Deck has 5 cards or more, normal draw
+					for(int i = 0; i < 5; i++)
 						actualPlayer.getHand().add(actualPlayer.getDeck().remove(0));
 				}
 				

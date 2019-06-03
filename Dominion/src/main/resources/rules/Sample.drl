@@ -241,7 +241,7 @@ rule "Play Artisan card"
 		$action : Action( this == Action.USE )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
-		// gain a card to your hand costing up to 5 either from Treasure, Victory and Kingdom decks
+		// gain a card to your hand costing up to 5 either from Treasure, Victory or Kingdom decks
 		
 		// put a card from your hand onto your deck
 		retract($player)
