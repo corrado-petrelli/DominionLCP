@@ -1,11 +1,15 @@
 package com.project;
 
 public enum Action {
+	//Draw a card (with coin)
 	DRAW,
+	//Apply the effect of a card
 	USE,
-	SHUFFLE,
+	//Gain some coins
 	COIN,
+	//Buy a card
 	BUY,
-	ACTION,
+	//Draw a card (without coin!! && not from your deck,
+	//it depends from the effect from the effect of the card)
 	GET
 }

@@ -27,8 +27,8 @@ public class Player implements Comparable<Player>{
 	private List<Card> hand;
 	private List<Card> discard;
 	/**
-	 * There is a card that provide coins but not provide a treasure card
-	 * this type of coin is called "virtual coin"
+	 * It represents ALL THE COINS of the player, also the virtual one
+	 * VIRTUALCOINS = TREASURE COINS + COINS GAINED WITHOUT TREASURE CARDS
 	 */
 	private int virtualCoins;
 	private int actions;
@@ -53,11 +53,17 @@ public class Player implements Comparable<Player>{
 	public void setPurchases(int purchases) {
 		this.purchases = purchases;
 	}
+	public void decreasePurchases(){
+		--purchases;
+	}
 
 	public int getActions() {
 		return actions;
 	}
-
+	
+	public void decreaseActions(){
+		--actions;
+	}
 	public void setActions(int actions) {
 		this.actions = actions;
 	}
@@ -94,6 +100,10 @@ public class Player implements Comparable<Player>{
 
 	public void setVirtualCoins(int virtualCoins) {
 		this.virtualCoins = virtualCoins;
+	}
+	
+	public void decreaseVirtualCoins(int costsOfCard){
+		this.virtualCoins = this.virtualCoins - costsOfCard;
 	}
 	
 	/**
@@ -235,30 +245,13 @@ public class Player implements Comparable<Player>{
 		return null;
 	}
 
-	public Kingdom getKingdomCard(Table table) throws NumberFormatException, IOException {
-		int scelta = 0;
-    	BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
+	public Kingdom getKingdomCard(Table table, int numberOfTheDeck) throws NumberFormatException, IOException {  	
+    	ArrayList<Kingdom> chosenKingdomDeck = table.getKingdomDecks().get(numberOfTheDeck);
 
-		do {
-			System.out.println("Available Kingdoms: ");
-			int i = 0;
-			for (Entry<Integer, ArrayList<Kingdom>> entry : table.getKingdomDecks().entrySet()) {
-					
-				if(entry.getValue().size() == 0)
-					System.out.println("   " + i + " - " + entry.getValue().get(0)+ " - FINISHED ");
-				else
-					System.out.println("   " + i + " - " + entry.getValue().get(0)+ " - remained: "+ entry.getValue().size());
-				
-				++i;
-			}
-			System.out.print(Color.BLUE_BOLD+"Option: "+Color.RESET);
-			scelta = Integer.parseInt(console.readLine());
-		} while (scelta < 0 || scelta >= table.getKingdomDecks().entrySet().size());
-
-		if(table.getKingdomDecks().get(scelta).size() > 0 && this.virtualCoins >= table.getKingdomDecks().get(scelta).get(0).getCost())
-			return table.getKingdomDecks().get(scelta).remove(0);
-		else
-			return null;
+    	if(!chosenKingdomDeck.isEmpty())
+    		return chosenKingdomDeck.remove(0);
+    	
+    	return null;
 	}
 	
 	

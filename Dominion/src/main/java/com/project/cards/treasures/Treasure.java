@@ -15,8 +15,9 @@ public abstract class Treasure extends Card {
 		return value;
 	}
 	
-	
-	
+	public int getCost() {
+		return cost;
+	}
 	
 	public String toString() {
 		return "Card [value=" + value + ", name=" + name + ", type=" + type +", cost="

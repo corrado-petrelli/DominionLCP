@@ -14,7 +14,12 @@ import java.util.*;
 global List<Card> trashPile;
 //Random logic
 global Random gameLogic;
-
+//Actual player
+global Player actualPlayer;
+//Table
+global Table table;
+//Players
+global List<Player> players;
 
 /*
  _______  __   __  __    _  _______  _______  ___   _______  __    _  _______ 
@@ -102,6 +107,59 @@ function void trash(Player p, Card c) {
 }
 */
 
+
+rule "Switch Turn"
+	when
+		$action : Phase( this == Phase.ENDTURN )
+	then
+		int indexActualPlayer = players.indexOf(actualPlayer);
+		//If the actual player is the last player of the list
+		if(indexActualPlayer == players.size() - 1){
+			actualPlayer = (Player)players.get(0);
+		} else {
+			actualPlayer = (Player)players.get(indexActualPlayer+1);
+		}
+		//Initialize the number of Actions and Purchases to the default value (1)
+		actualPlayer.setActions(1);
+		actualPlayer.setPurchases(1);	
+		//It modifies the situation variable of the situation (it is useful to 
+		table.checkEndGame();	
+end
+
+
+
+
+rule "Choice Action Phase Rule"
+	//According to us we must give an order:
+	//	- Choice the card
+	//	- Play the card
+	//	- Until you have an available action
+	salience 10
+	when
+		$action : Phase( this == Phase.ACTION )
+	then
+		Card kingdomCardToPlay = null;
+		//10 because the number of kingdoms deck is 10
+		int randomInt;
+		do{
+			randomInt = gameLogic.nextInt(10);
+			kingdomCardToPlay = actualPlayer.getKingdomCard(table,randomInt);
+		}while(kingdomCardToPlay == null);
+		
+		if(actualPlayer.getActions() > 0){
+			insert(Action.USE);
+			insert(kingdomCardToPlay);
+			actualPlayer.decreaseActions();
+		}
+		else{
+			retract(Phase.ACTION);
+		}
+end
+
+
+
+
+
 /*
  _______  ___      _______  __   __                                                
 |       ||   |    |   _   ||  | |  |                                               
@@ -178,17 +236,84 @@ rule "Buy Victories card"
 end
 */
 
+
+
+
+
 rule "Buy a (general) Card"
 	when 
-		$player : Player( $username : username )
-		$card : Card(  )
-		$table : Table(  )
-		$action : Action( this == Action.BUY )
+		$phase : Phase( this == Phase.PURCHASE )
 	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
+		Card cardToBuy = null;
+		
+		//Choice a card to buy randomly
+		int randomInt = gameLogic.nextInt(7);
+		
+		switch (randomInt) {
+			case 0:
+				//Copper is free
+				if(!table.getCopperDeck().isEmpty()){
+					cardToBuy = table.getCopperDeck().remove(0);
+				}
+				break;
+			case 1:
+				if(!table.getSilverDeck().isEmpty()){
+					if(actualPlayer.getVirtualCoins() >= 3){
+						cardToBuy = table.getCopperDeck().remove(0);
+					}
+				}
+				break;
+			case 2:
+				if(!table.getGoldDeck().isEmpty()){
+					if(actualPlayer.getVirtualCoins() >= 6){
+						cardToBuy = table.getGoldDeck().remove(0);
+					}
+				}
+				break;
+			case 3:
+				if(!table.getDuchyDeck().isEmpty()){
+					if(actualPlayer.getVirtualCoins() >= 5){
+						cardToBuy = table.getDuchyDeck().remove(0);
+					}
+				}
+				break;
+			case 4:
+				if(!table.getEstateDeck().isEmpty()){
+					if(actualPlayer.getVirtualCoins() >= 2){
+						cardToBuy = table.getEstateDeck().remove(0);
+					}
+				}
+				break;
+			case 5:
+				if(!table.getProvinceDeck().isEmpty()){
+					if(actualPlayer.getVirtualCoins() >= 8){
+						cardToBuy = table.getProvinceDeck().remove(0);
+					}
+				}
+				break;
+			case 6:
+				int randomIntKingdom;
+				do{
+					randomIntKingdom = gameLogic.nextInt(10);
+					cardToBuy = actualPlayer.getKingdomCard(table,randomIntKingdom);
+				}while(cardToBuy == null);
+				break;
+		}
+
+		//If I choice a card
+		if(cardToBuy != null){
+			//I remove the virtual coins of the card
+			actualPlayer.decreaseVirtualCoins(cardToBuy.getCost());
+			
+			if(actualPlayer.getPurchases() > 0){
+				insert(Action.BUY);
+				insert(cardToBuy);
+				actualPlayer.decreasePurchases();
+			}
+			else{
+				retract(Phase.PURCHASE);
+			}
+		}
 end
 
 
@@ -790,3 +915,26 @@ rule "Play Woodcutter card"
 		retract($action)
 end
 
+
+
+
+//WIN RULE
+rule "End game rule"
+	salience 20
+	when
+		$situation : Table( situation == 2 )
+		$phase : Phase( this == Phase.ENDTURN )
+	then
+		System.out.println("The game is finished . . .");
+		//Sort ascendent the players (the class player implements Comparable)
+		Collections.sort(players);
+		//Reverse the list
+		Collections.reverse(players);
+		//Print the ranking
+		System.out.println("***RANK***");
+		for (int j = 0; j < players.size(); j++)
+			System.out.println((j+1)+"-\t"+players.get(j));
+			
+		
+		
+end

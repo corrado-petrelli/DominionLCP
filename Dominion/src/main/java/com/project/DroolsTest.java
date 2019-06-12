@@ -47,41 +47,6 @@ public class DroolsTest {
     	    KieContainer kContainer = ks.getKieClasspathContainer();
         	KieSession kSession = kContainer.newKieSession("ksession-rules");
         	
-        	
-        	
-        	/*
-        	List<Kingdom> allKingdomCard = new ArrayList<>();
-        	allKingdomCard.add(new Adventurer());
-			allKingdomCard.add(new Bureaucrat());
-			allKingdomCard.add(new Cellar());
-			allKingdomCard.add(new Chancellor());
-			allKingdomCard.add(new Chapel());
-			allKingdomCard.add(new Councilroom());
-			allKingdomCard.add(new Feast());
-			allKingdomCard.add(new Festival());
-			allKingdomCard.add(new Laboratory());
-			allKingdomCard.add(new Library());
-			allKingdomCard.add(new Market());
-			allKingdomCard.add(new Militia());
-			allKingdomCard.add(new Mine());
-			allKingdomCard.add(new Moat());
-			allKingdomCard.add(new Moneylender());
-			allKingdomCard.add(new Remodel());
-			allKingdomCard.add(new Smithy());
-			allKingdomCard.add(new Spy());
-			allKingdomCard.add(new Thief());
-			allKingdomCard.add(new Throneroom());
-			allKingdomCard.add(new Village());
-			allKingdomCard.add(new Witch());
-			allKingdomCard.add(new Woodcutter());
-			allKingdomCard.add(new Workshop());
-			//12 gardens cards
-			for (j = 0; j < 12; j++){
-				allKingdomCard.add(new Gardens());
-			}
-
-			*/
-        	
 
         	/*
 				███████╗███████╗████████╗██╗   ██╗██████╗ 
@@ -91,17 +56,25 @@ public class DroolsTest {
 				███████║███████╗   ██║   ╚██████╔╝██║     
 				╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝                                    
         	 */
-        	int j = 0;
+
         	List<Player> players = new ArrayList<Player>();
         	players.add(new Player("Corrado"));
         	players.add(new Player("Vincenzo"));
         	players.add(new Player("Fulvio"));
+
+        	//Randomly determine the starting player.
+        	Collections.shuffle(players);
+        	
+        	
         	
         	//The setup is into the Table constructor
         	Table table = new Table();
-        	kSession.insert(table);
         	//Initial cards distribution
         	table.getCardsToThePlayers(players);
+        	
+        	
+        	kSession.setGlobal("players", players);
+        	kSession.setGlobal("table", table);
         	
 			     	
 			/*
@@ -112,18 +85,14 @@ public class DroolsTest {
 				██║     ███████╗██║  ██║   ██║   
 				╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   				                                 
 			 */
-			//Randomly determine the starting player.
-        	Collections.shuffle(players);
-			int indexActualPlayer = 0;
-			actualPlayer = players.get(indexActualPlayer);
 			
-			int numberOfRounds = 0;
-			int howManyDecksAreEmpty = 0;
-			boolean isProvinceDeckEmpty = false;
+        	//The actual player is the first of the list
+			actualPlayer = players.get(0);
+			kSession.setGlobal("actualPlayer", actualPlayer);
+			
 			do{
 				System.out.println("Now it's the turn of "+actualPlayer.getUsername());
-				actualPlayer.setActions(1);
-				actualPlayer.setPurchases(1);;
+				
 				/*
 					 █████╗  ██████╗████████╗██╗ ██████╗ ███╗   ██╗    ██████╗ ██╗  ██╗ █████╗ ███████╗███████╗
 					██╔══██╗██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║    ██╔══██╗██║  ██║██╔══██╗██╔════╝██╔════╝
@@ -138,27 +107,13 @@ public class DroolsTest {
 				System.out.println("****ACTION PHASE****");
 				System.out.println("********************");
 				System.out.println(Color.RESET);
+				kSession.insert(Phase.ACTION);
 				
-				int actualActions = 0;
-				// Actual player plays a card from his/her hand
-				do{
-					int scelta = choiceActionPhase();
-					
-					//If the player chose a card delete it from his/her hand and play it
-					if(scelta != 0){
-						int indexOfChosenCard = scelta - 1;
-						Card chosenCard = actualPlayer.getHand().get(indexOfChosenCard);
-						System.out.println(actualPlayer.getUsername()+" chose "+chosenCard);
-						kSession.insert(actualPlayer);
-						kSession.insert(chosenCard);
-						kSession.insert(Action.USE);
-						kSession.fireAllRules();
-					}
-					else
-						System.out.println(actualPlayer.getUsername()+ " skip this phase");
-					
-					actualActions++;
-				}while(actualActions < actualPlayer.getActions());
+				//I must trigger "Choice Action Phase Rule" and "Play XXXXXX Card"
+				//Where XXXXXX is a Kingdom card, the logic is in Drools
+				kSession.fireAllRules();
+				
+				
 				/*
 					██████╗ ██╗   ██╗██╗   ██╗    ██████╗ ██╗  ██╗ █████╗ ███████╗███████╗
 					██╔══██╗██║   ██║╚██╗ ██╔╝    ██╔══██╗██║  ██║██╔══██╗██╔════╝██╔════╝
@@ -174,8 +129,14 @@ public class DroolsTest {
 				System.out.println("******BUY PHASE******");
 				System.out.println("*********************");
 				System.out.println(Color.RESET);
+				
+				kSession.insert(Phase.PURCHASE);
+				kSession.fireAllRules();
+				
+				
 				// Actual player buys a card from one of the supplies
 				int actualPurchases = 0;
+				
 				// Play all the treasure cards in hand
 				for(int i = 0; i < actualPlayer.getHand().size(); i++) {
 					Card c = actualPlayer.getHand().get(i);
@@ -185,6 +146,8 @@ public class DroolsTest {
 		    			// TODO Remove the played Treasure cards from the hand
 		    		}
 		    	}
+				
+				
 				do{
 					Card chosenCard = choiceBuyPhase(table);
 					kSession.insert(actualPlayer);
@@ -210,6 +173,7 @@ public class DroolsTest {
 				System.out.println("******CLEAN-UP PHASE******");
 				System.out.println("**************************");
 				System.out.println(Color.RESET);
+				kSession.insert(Phase.CLEANUP);
 				
 				/* Actual player discard his/her hand and draw 5 new cards from the deck */
 				actualPlayer.getDiscard().addAll(actualPlayer.getHand());
@@ -232,30 +196,23 @@ public class DroolsTest {
 						actualPlayer.getHand().add(actualPlayer.getDeck().remove(0));
 				}
 				
-				// Check end game condition
-				System.out.println("TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
-				//Check here if 3 or more supply piles are empty or if Province supply is empty
- 				howManyDecksAreEmpty = 0;
- 				isProvinceDeckEmpty = false;
- 				if(table.getCopperDeck().isEmpty()) howManyDecksAreEmpty++;
- 				if(table.getCurseDeck().isEmpty()) howManyDecksAreEmpty++;
- 				if(table.getDuchyDeck().isEmpty()) howManyDecksAreEmpty++;
- 				if(table.getEstateDeck().isEmpty()) howManyDecksAreEmpty++;
- 				if(table.getGoldDeck().isEmpty()) howManyDecksAreEmpty++;
- 				if(table.getProvinceDeck().isEmpty()) { howManyDecksAreEmpty++; isProvinceDeckEmpty = true; }
- 				if(table.getSilverDeck().isEmpty()) howManyDecksAreEmpty++;
- 				for(int i = 0; i < table.getKingdomDecks().size(); i++)
- 					if(table.getKingdomDecks().get(i).isEmpty()) howManyDecksAreEmpty++;
- 				
 				
-				//Change the turn
+				kSession.insert(Phase.ENDTURN);
+				// Check end game condition
+				table.checkEndGame();
+				
+				
+				/*
+				MOVED TO DROOLS RULE!
+				
 				if(indexActualPlayer == 2)
 					indexActualPlayer = 0;
 				else
 					indexActualPlayer++;
 				actualPlayer = players.get(indexActualPlayer);
-				numberOfRounds++;
-			}while(howManyDecksAreEmpty < 3 || !isProvinceDeckEmpty);
+				*/
+				
+			}while(table.getSituation() != 2);
 			
 			/*
 			████████╗██╗  ██╗███████╗    ██╗    ██╗██╗███╗   ██╗███╗   ██╗███████╗██████╗     ██╗███████╗
@@ -266,6 +223,9 @@ public class DroolsTest {
 			   ╚═╝   ╚═╝  ╚═╝╚══════╝     ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝    ╚═╝╚══════╝
 			                                                                                             
 			 */
+			/*
+			 * 
+			 * MOVED TO DROOLS "END GAME RULE"
 			//Sort ascendent the players (the class player implements Comparable)
 			Collections.sort(players);
 			//Reverse the list
@@ -277,7 +237,7 @@ public class DroolsTest {
 				System.out.println((j+1)+"-\t"+players.get(j));
 			
         	//kSession.fireAllRules();
-        	
+        	*/
         	
         } catch (Throwable t) {
             t.printStackTrace();
@@ -361,7 +321,7 @@ public class DroolsTest {
 						chosenCard = actualPlayer.getCurseCard(table);
 						break;
 					case 8:
-						chosenCard = actualPlayer.getKingdomCard(table);
+						//chosenCard = actualPlayer.getKingdomCard(table);
 						break;
 				}
 				

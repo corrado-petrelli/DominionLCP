@@ -100,6 +100,7 @@ public class Table {
 			provinceDeck.add(new Province());
 			duchyDeck.add(new Duchy());
 		}
+		situation = 1;
 	}
 
 	/*
