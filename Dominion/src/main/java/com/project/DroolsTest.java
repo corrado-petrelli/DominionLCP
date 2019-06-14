@@ -107,8 +107,8 @@ public class DroolsTest {
 				System.out.println("****ACTION PHASE****");
 				System.out.println("********************");
 				System.out.println(Color.RESET);
-				kSession.insert(Phase.ACTION);
 				
+				kSession.insert(Phase.ACTION);
 				//I must trigger "Choice Action Phase Rule" and "Play XXXXXX Card"
 				//Where XXXXXX is a Kingdom card, the logic is in Drools
 				kSession.fireAllRules();
@@ -134,29 +134,6 @@ public class DroolsTest {
 				kSession.fireAllRules();
 				
 				
-				// Actual player buys a card from one of the supplies
-				int actualPurchases = 0;
-				
-				// Play all the treasure cards in hand
-				for(int i = 0; i < actualPlayer.getHand().size(); i++) {
-					Card c = actualPlayer.getHand().get(i);
-		    		if(c instanceof Treasure) {
-		    			actualPlayer.setVirtualCoins(actualPlayer.getVirtualCoins() + ((Treasure)c).getValue());
-		    			actualPlayer.getDiscard().add(c);
-		    			// TODO Remove the played Treasure cards from the hand
-		    		}
-		    	}
-				
-				
-				do{
-					Card chosenCard = choiceBuyPhase(table);
-					kSession.insert(actualPlayer);
-					kSession.insert(chosenCard);
-					kSession.insert(Action.BUY);
-					kSession.fireAllRules();
-					actualPurchases++;
-				}while(actualPurchases < actualPlayer.getPurchases());
-				
 				
 				/*
 				 ██████╗██╗     ███████╗ █████╗ ███╗   ██╗      ██╗   ██╗██████╗     ██████╗ ██╗  ██╗ █████╗ ███████╗███████╗
@@ -173,28 +150,10 @@ public class DroolsTest {
 				System.out.println("******CLEAN-UP PHASE******");
 				System.out.println("**************************");
 				System.out.println(Color.RESET);
-				kSession.insert(Phase.CLEANUP);
 				
-				/* Actual player discard his/her hand and draw 5 new cards from the deck */
-				actualPlayer.getDiscard().addAll(actualPlayer.getHand());
-				actualPlayer.getHand().clear();
-				// Deck has less than 5 cards, so draw the size of the deck and the remaining from the discard pile
-				if(actualPlayer.getDeck().size() < 5) {
-					
-					int size = actualPlayer.getDeck().size();
-					int discardDraw = 5 - size;
-					for(int i = 0; i < size; i++)
-						actualPlayer.getHand().add(actualPlayer.getDeck().remove(0));
-					Collections.shuffle(actualPlayer.getDiscard());
-					actualPlayer.getDeck().addAll(actualPlayer.getDiscard());
-					actualPlayer.getDiscard().clear();
-					for(int i = 0; i < discardDraw; i++)
-						actualPlayer.getHand().add(actualPlayer.getDeck().remove(0));
-				} else {
-					// Deck has 5 cards or more, normal draw
-					for(int i = 0; i < 5; i++)
-						actualPlayer.getHand().add(actualPlayer.getDeck().remove(0));
-				}
+				
+				kSession.insert(Phase.CLEANUP);
+				kSession.fireAllRules();
 				
 				
 				kSession.insert(Phase.ENDTURN);
@@ -202,15 +161,7 @@ public class DroolsTest {
 				table.checkEndGame();
 				
 				
-				/*
-				MOVED TO DROOLS RULE!
-				
-				if(indexActualPlayer == 2)
-					indexActualPlayer = 0;
-				else
-					indexActualPlayer++;
-				actualPlayer = players.get(indexActualPlayer);
-				*/
+				//Switch the turn is moved into drools
 				
 			}while(table.getSituation() != 2);
 			
@@ -223,28 +174,16 @@ public class DroolsTest {
 			   ╚═╝   ╚═╝  ╚═╝╚══════╝     ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝    ╚═╝╚══════╝
 			                                                                                             
 			 */
-			/*
-			 * 
-			 * MOVED TO DROOLS "END GAME RULE"
-			//Sort ascendent the players (the class player implements Comparable)
-			Collections.sort(players);
-			//Reverse the list
-			Collections.reverse(players);
-			//Print the ranking
-			
-			System.out.println("***RANK***");
-			for (j = 0; j < players.size(); j++)
-				System.out.println((j+1)+"-\t"+players.get(j));
-			
-        	//kSession.fireAllRules();
-        	*/
+			//SEE DROOLS TO WINNER RULE
         	
         } catch (Throwable t) {
             t.printStackTrace();
         }
     }
     
-    
+    /*
+     * OLD: User Input!
+     * 
     public static int choiceActionPhase() throws NumberFormatException, IOException{
     	int scelta = -1;
 		do{
@@ -333,10 +272,10 @@ public class DroolsTest {
 				}
 				else{
 					//Questo dovrebbe essere actualPlayer.buy(...);
-					if(actualPlayer.getTotalCoins() < chosenCard.getCost()){
+					if(actualPlayer.getVirtualCoins() < chosenCard.getCost()){
 						System.out.println(Color.RED_BRIGHT);
 						System.out.println(actualPlayer.getUsername()+" can't buy this card!");
-						System.out.println(actualPlayer.getUsername()+" has "+actualPlayer.getTotalCoins()+" coins!");
+						System.out.println(actualPlayer.getUsername()+" has "+actualPlayer.getVirtualCoins()+" coins!");
 						System.out.println(chosenCard.getName() +" costs "+chosenCard.getCost()+ " coins!");
 						scelta = -1;
 						System.out.println(Color.RESET);
@@ -350,7 +289,7 @@ public class DroolsTest {
 
 						System.out.println(Color.RESET);
 						System.out.println(actualPlayer.getUsername()+ " bought this card: "+chosenCard);
-						System.out.println("Now "+actualPlayer.getUsername()+ " has "+actualPlayer.getTotalCoins()+ " coins");
+						System.out.println("Now "+actualPlayer.getUsername()+ " has "+actualPlayer.getVirtualCoins()+ " coins");
 					}
 					
 				}
@@ -359,5 +298,5 @@ public class DroolsTest {
     	return chosenCard;
     }
 
-
+	*/
 }

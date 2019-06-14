@@ -1,14 +1,9 @@
 package com.project;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map.Entry;
-
-import org.drools.compiler.lang.DRL5Expressions.instanceof_key_return;
 
 import com.project.cards.Card;
 import com.project.cards.IVictoryCard;
@@ -17,7 +12,6 @@ import com.project.cards.kingdoms.Kingdom;
 import com.project.cards.treasures.Copper;
 import com.project.cards.treasures.Gold;
 import com.project.cards.treasures.Silver;
-import com.project.cards.treasures.Treasure;
 import com.project.cards.victories.Duchy;
 import com.project.cards.victories.Estate;
 import com.project.cards.victories.Province;
@@ -106,17 +100,6 @@ public class Player implements Comparable<Player>{
 		this.virtualCoins = this.virtualCoins - costsOfCard;
 	}
 	
-	/**
-	 * The total coins is calculated when i invoke the method
-	 * @return
-	 */
-	public int getTotalCoins() {
-		int total = 0;
-		for (Card card : hand)
-			if(card instanceof Treasure)
-				total += card.getCost();
-		return total + this.getVirtualCoins();
-	}
 
 	public String getUsername() {
 		return username;
@@ -131,6 +114,7 @@ public class Player implements Comparable<Player>{
 		return total;
 	}
 	
+	/*
 	public void buy(Card cardToBuy){
 	int budget = this.getTotalCoins();
 	int updatedBudget = 0;
@@ -139,11 +123,11 @@ public class Player implements Comparable<Player>{
 			this.hand.add(cardToBuy);
 			this.deck.remove(cardToBuy);
 
-			/*
+			
 			 * TODO
 			 * Check if cardToBuy cost > player's coin
 			 * move the card from the common deck to the player's deck
-			 */
+			 
 		}
 		else
 		{
@@ -160,34 +144,34 @@ public class Player implements Comparable<Player>{
 	
 	public void useCard(Kingdom kingdomToUse, List<Player> playersToAttack)
 	{
-		/*
+		
 		 * TODO
 		 * 
 		 * 		NB: 
 		 * 			if playersToAttack == null -> it's a card that has not effect to the other players
 		 * 			if playersToAttack has only one person -> the player attack only 1 person
 		 * 			if playerToAttack has 2 or more player -> the player attack more player
-		 */
+		 
 	}
 	
 	public void discardCard(Card cardToDiscard){
 		if(this.hand.contains(cardToDiscard)){
 			this.discard.add(cardToDiscard);
 			this.hand.remove(cardToDiscard);
-			/*
+			*
 			 * TODO
 			 * 
 			 * 
 			 * I must move the cardToDiscard (check if I take this card in my hand)
 			 * to the discarded deck.
-			 */
+			 *
 		}
 		else{
            System.out.println("The card" + cardToDiscard + " is non in your hand!");
 		}
 	}
 	
-	
+	*/
 	@Override
 	public int compareTo(Player o) {
 		if(this.getVictoryPoint() > o.getVictoryPoint())
@@ -245,6 +229,17 @@ public class Player implements Comparable<Player>{
 		return null;
 	}
 
+	public Kingdom extractKingdomCardFromHand() throws NumberFormatException, IOException {  	
+		Kingdom kingdomToUse = null;
+		for (Card card : hand){
+			if(card instanceof Kingdom){
+				kingdomToUse = (Kingdom)card;
+				hand.remove(card);
+			}
+		}
+		return kingdomToUse;
+	}
+	
 	public Kingdom getKingdomCard(Table table, int numberOfTheDeck) throws NumberFormatException, IOException {  	
     	ArrayList<Kingdom> chosenKingdomDeck = table.getKingdomDecks().get(numberOfTheDeck);
 
@@ -253,7 +248,6 @@ public class Player implements Comparable<Player>{
     	
     	return null;
 	}
-	
 	
 	
 	
