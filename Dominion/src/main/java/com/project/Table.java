@@ -125,7 +125,78 @@ public class Table {
 		}
 	}
 
+	public List<Card> getAllCardsThatCanBeBoughtWithAmountOfCoins(int amount) throws InstantiationException, IllegalAccessException {
+		List<Card> cards = new ArrayList<Card>();
+		if(amount >= new Copper().getCost() && this.getCopperDeck().size() > 0)
+			cards.add(new Copper());
+		if(amount >= new Silver().getCost() && this.getSilverDeck().size() > 0)
+			cards.add(new Silver());
+		if(amount >= new Gold().getCost() && this.getGoldDeck().size() > 0)
+			cards.add(new Gold());
+		if(amount >= new Estate().getCost() && this.getEstateDeck().size() > 0)
+			cards.add(new Estate());
+		if(amount >= new Duchy().getCost() && this.getDuchyDeck().size() > 0)
+			cards.add(new Duchy());
+		if(amount >= new Province().getCost() && this.getProvinceDeck().size() > 0)
+			cards.add(new Province());
+		if(amount >= kingdomDecks.get(0).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+			cards.add(kingdomDecks.get(0).get(0).getClass().newInstance());
+		if(amount >= kingdomDecks.get(1).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+			cards.add(kingdomDecks.get(1).get(0).getClass().newInstance());
+		if(amount >= kingdomDecks.get(2).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+			cards.add(kingdomDecks.get(2).get(0).getClass().newInstance());
+		if(amount >= kingdomDecks.get(3).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+			cards.add(kingdomDecks.get(3).get(0).getClass().newInstance());
+		if(amount >= kingdomDecks.get(4).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+			cards.add(kingdomDecks.get(4).get(0).getClass().newInstance());
+		if(amount >= kingdomDecks.get(5).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+			cards.add(kingdomDecks.get(5).get(0).getClass().newInstance());
+		if(amount >= kingdomDecks.get(6).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+			cards.add(kingdomDecks.get(6).get(0).getClass().newInstance());
+		if(amount >= kingdomDecks.get(7).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+			cards.add(kingdomDecks.get(7).get(0).getClass().newInstance());
+		if(amount >= kingdomDecks.get(8).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+			cards.add(kingdomDecks.get(8).get(0).getClass().newInstance());
+		if(amount >= kingdomDecks.get(9).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+			cards.add(kingdomDecks.get(9).get(0).getClass().newInstance());
+		return cards;
+	}
 	
+	public void decreaseDeckSize(Card c) {
+		if(c.getClass().equals(new Copper().getClass()) && this.getCopperDeck().size() > 0)
+			this.getCopperDeck().remove(0);
+		if(c.getClass().equals(new Silver().getClass()) && this.getCopperDeck().size() > 0)
+			this.getSilverDeck().remove(0);
+		if(c.getClass().equals(new Gold().getClass()) && this.getCopperDeck().size() > 0)
+			this.getGoldDeck().remove(0);
+		if(c.getClass().equals(new Estate().getClass()) && this.getCopperDeck().size() > 0)
+			this.getEstateDeck().remove(0);
+		if(c.getClass().equals(new Duchy().getClass()) && this.getCopperDeck().size() > 0)
+			this.getDuchyDeck().remove(0);
+		if(c.getClass().equals(new Province().getClass()) && this.getCopperDeck().size() > 0)
+			this.getProvinceDeck().remove(0);
+		if(c.getClass().equals(kingdomDecks.get(0).get(0).getClass()) && kingdomDecks.get(0).size() > 0)
+			kingdomDecks.get(0).remove(0);
+		if(c.getClass().equals(kingdomDecks.get(1).get(0).getClass()) && kingdomDecks.get(1).size() > 0)
+			kingdomDecks.get(1).remove(0);
+		if(c.getClass().equals(kingdomDecks.get(2).get(0).getClass()) && kingdomDecks.get(2).size() > 0)
+			kingdomDecks.get(2).remove(0);
+		if(c.getClass().equals(kingdomDecks.get(3).get(0).getClass()) && kingdomDecks.get(3).size() > 0)
+			kingdomDecks.get(3).remove(0);
+		if(c.getClass().equals(kingdomDecks.get(4).get(0).getClass()) && kingdomDecks.get(4).size() > 0)
+			kingdomDecks.get(4).remove(0);
+		if(c.getClass().equals(kingdomDecks.get(5).get(0).getClass()) && kingdomDecks.get(5).size() > 0)
+			kingdomDecks.get(5).remove(0);
+		if(c.getClass().equals(kingdomDecks.get(6).get(0).getClass()) && kingdomDecks.get(6).size() > 0)
+			kingdomDecks.get(6).remove(0);
+		if(c.getClass().equals(kingdomDecks.get(7).get(0).getClass()) && kingdomDecks.get(7).size() > 0)
+			kingdomDecks.get(7).remove(0);
+		if(c.getClass().equals(kingdomDecks.get(8).get(0).getClass()) && kingdomDecks.get(8).size() > 0)
+			kingdomDecks.get(8).remove(0);
+		if(c.getClass().equals(kingdomDecks.get(9).get(0).getClass()) && kingdomDecks.get(9).size() > 0)
+			kingdomDecks.get(9).remove(0);
+				
+	}
 
 	public List<Card> getTrashDeck() {
 		return trashDeck;

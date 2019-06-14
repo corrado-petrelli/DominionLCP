@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import org.kie.api.KieServices;
 import org.kie.api.event.rule.ObjectDeletedEvent;
@@ -72,10 +73,11 @@ public class DroolsTest {
         	//Initial cards distribution
         	table.getCardsToThePlayers(players);
         	
+        	Random r = new Random();
         	
         	kSession.setGlobal("players", players);
         	kSession.setGlobal("table", table);
-        	
+        	kSession.setGlobal("gameLogic", r);
 			     	
 			/*
 				██████╗ ██╗      █████╗ ██╗   ██╗
@@ -88,9 +90,9 @@ public class DroolsTest {
 			
         	//The actual player is the first of the list
 			actualPlayer = players.get(0);
-			kSession.setGlobal("actualPlayer", actualPlayer);
+			kSession.insert(actualPlayer);
 			
-			do{
+			
 				System.out.println("Now it's the turn of "+actualPlayer.getUsername());
 				
 				/*
@@ -101,12 +103,7 @@ public class DroolsTest {
 					██║  ██║╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║    ██║     ██║  ██║██║  ██║███████║███████╗
 					╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝    ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝
 				 */
-				System.out.println(Color.CYAN_BOLD);
-				System.out.println(Color.BLACK_BACKGROUND);
-				System.out.println("********************");
-				System.out.println("****ACTION PHASE****");
-				System.out.println("********************");
-				System.out.println(Color.RESET);
+				
 				
 				kSession.insert(Phase.ACTION);
 				//I must trigger "Choice Action Phase Rule" and "Play XXXXXX Card"
@@ -123,15 +120,11 @@ public class DroolsTest {
 					╚═════╝  ╚═════╝    ╚═╝       ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝
 					                                                                      
 				 */
-				System.out.println(Color.CYAN_BOLD);
-				System.out.println(Color.BLACK_BACKGROUND);
-				System.out.println("*********************");
-				System.out.println("******BUY PHASE******");
-				System.out.println("*********************");
-				System.out.println(Color.RESET);
 				
-				kSession.insert(Phase.PURCHASE);
-				kSession.fireAllRules();
+				
+				/*
+				 * 	PURCHASE PHASE IS MANAGED INSIDE DROOLS
+				 */
 				
 				
 				
@@ -144,26 +137,18 @@ public class DroolsTest {
 				 ╚═════╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝       ╚═════╝ ╚═╝         ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝
 				 */
 				
-				System.out.println(Color.CYAN_BOLD);
-				System.out.println(Color.BLACK_BACKGROUND);
-				System.out.println("**************************");
-				System.out.println("******CLEAN-UP PHASE******");
-				System.out.println("**************************");
-				System.out.println(Color.RESET);
+				/*
+				 * CLEANUP PHASE IS MANAGED INSIDE DROOLS
+				 */
 				
 				
-				kSession.insert(Phase.CLEANUP);
-				kSession.fireAllRules();
 				
+				// Check end game condition, is done in drools
 				
-				kSession.insert(Phase.ENDTURN);
-				// Check end game condition
-				table.checkEndGame();
 				
 				
 				//Switch the turn is moved into drools
 				
-			}while(table.getSituation() != 2);
 			
 			/*
 			████████╗██╗  ██╗███████╗    ██╗    ██╗██╗███╗   ██╗███╗   ██╗███████╗██████╗     ██╗███████╗

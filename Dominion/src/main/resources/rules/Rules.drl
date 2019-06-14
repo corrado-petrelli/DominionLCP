@@ -2,21 +2,21 @@ package rules
 
 import com.project.Player;
 import com.project.Action;
+import com.project.Phase;
 import com.project.Table;
 import com.project.cards.Card;
 import com.project.cards.kingdoms.*;
 import com.project.cards.treasures.*;
 import com.project.cards.victories.*;
 import com.project.cards.curses.*;
-import com.project.Phase;
 import java.util.*;
 
 //List of trash cards
 global List<Card> trashPile;
 //Random logic
 global Random gameLogic;
-//Actual player
-global Player actualPlayer;
+//Actual player if used as global variable is read only
+//global Player actualPlayer;
 //Table
 global Table table;
 //Players
@@ -110,11 +110,12 @@ function void trash(Player p, Card c) {
 
 
 rule "Switch Turn"
-	salience 10
 	when
 		$action : Phase( this == Phase.ENDTURN )
+		actualPlayer : Player(  )
+		not Action(  )
 	then
-		//Get the index of actual player
+		System.out.println(actualPlayer.getUsername() + " ended its turn");
 		int indexActualPlayer = players.indexOf(actualPlayer);
 		//If the actual player is the last player of the list
 		if(indexActualPlayer == players.size() - 1){
@@ -122,71 +123,104 @@ rule "Switch Turn"
 		} else {
 			actualPlayer = (Player)players.get(indexActualPlayer+1);
 		}
-		//Initialize the number of Actions and Purchases to the default value (1)
+		System.out.println("Now it's the turn of " + actualPlayer.getUsername());
+		//Reset the number of Actions and Purchases to the default value (1)
 		actualPlayer.setActions(1);
-		actualPlayer.setPurchases(1);	
-		//It modifies the situation variable of the situation (it is useful to 
-		table.checkEndGame();	
+		actualPlayer.setPurchases(1);
+		retract($action);
+		insert(Phase.ACTION);
+		retract(actualPlayer);
+		insert(actualPlayer);
 end
 
 
 
 
-rule "Choice Action Phase Rule"
+rule "Action Phase Rule"
+	no-loop
 	//According to us we must give an order:
-	//	- Choice the card
-	//	- Play the card
-	//	- Until you have an available action
+	//	1 - player choose the card from the hand
+	//	2 - it Plays the card
+	//	3 - Goto 1 and repeat until player has available actions
 	salience 10
 	when
-		$action : Phase( this == Phase.ACTION )
+		$state : Phase( this == Phase.ACTION )
+		actualPlayer : Player(  )
+		not Action(  )
 	then
-		Card kingdomCardToPlay = null;
-		int randomInt;
-		
-		//CHOICE A RANDOM KINGDOM CARD FROM HAND
-		kingdomCardToPlay = actualPlayer.extractKingdomCardFromHand();
-		
-		//If there is at least 1 kingdom card in the hand
-		if(kingdomCardToPlay != null){
-			//INSERT THE CARD TO PLAY IN THE WORKING MEMORY
-			insert(Action.USE);
-			insert(kingdomCardToPlay);
-			
-			if(actualPlayer.getActions() > 0){
-				actualPlayer.decreaseActions();
-			}
-			else{
-				//Change phases
-				retract(Phase.ACTION);
-				insert(Phase.PURCHASE);
+		System.out.println(actualPlayer.getUsername() + " Entered in action phase rule");
+		while(actualPlayer.getActions() > 0) {
+			Card kingdomCardToPlay = actualPlayer.getPlayableKingdomCardFromHand();
+			if(kingdomCardToPlay != null)
+				System.out.println("Card chosen, card is: " + kingdomCardToPlay);
+			else
+				System.out.println(actualPlayer.getUsername() + " has no Kingdom cards in hand");
+			if(kingdomCardToPlay != null) {
+				
+					insert(Action.USE);
+					insert(kingdomCardToPlay);
+					actualPlayer.decreaseActions();
+					System.out.println(actualPlayer.getUsername() + " played " + kingdomCardToPlay.getName());
+				
+				
+			} else {
+				System.out.println(actualPlayer.getUsername() + " skipped action phase");
+				actualPlayer.setActions(0);
 			}
 		}
-		else{
-			//Change phases
-			retract(Phase.ACTION);
-			insert(Phase.PURCHASE);
-		}		
+		retract($state);
+		insert(Phase.PURCHASE);
 end
 
 
+/*
+ _______  ___      _______  __   __                                                
+|       ||   |    |   _   ||  | |  |                                               
+|    _  ||   |    |  |_|  ||  |_|  |                                               
+|   |_| ||   |    |       ||       |                                               
+|    ___||   |___ |       ||_     _|                                               
+|   |    |       ||   _   |  |   |                                                 
+|___|    |_______||__| |__|  |___|                                                 
+ _______  ______    _______  _______  _______  __   __  ______    _______  _______ 
+|       ||    _ |  |       ||   _   ||       ||  | |  ||    _ |  |       ||       |
+|_     _||   | ||  |    ___||  |_|  ||  _____||  | |  ||   | ||  |    ___||  _____|
+  |   |  |   |_||_ |   |___ |       || |_____ |  |_|  ||   |_||_ |   |___ | |_____ 
+  |   |  |    __  ||    ___||       ||_____  ||       ||    __  ||    ___||_____  |
+  |   |  |   |  | ||   |___ |   _   | _____| ||       ||   |  | ||   |___  _____| |
+  |___|  |___|  |_||_______||__| |__||_______||_______||___|  |_||_______||_______|
+*/
 
-//WIN RULE
-rule "End game rule"
-	salience 20
+/*
+rule "Play Treasures card"
 	when
-		$situation : Table( situation == 2 )
-		$phase : Phase( this == Phase.ENDTURN )
+		$player : Player( $username : username )
+		$card : Treasure( $amount : value )
+		$action : Action( this == Action.USE )
 	then
-		System.out.println("The game is finished . . .");
-		//Sort ascendent the players (the class player implements Comparable)
-		Collections.sort(players);
-		//Reverse the list
-		Collections.reverse(players);
-		//Print the ranking
-		System.out.println("***RANK***");
-		for (int j = 0; j < players.size(); j++)
-			System.out.println((j+1)+"-\t"+players.get(j));
+		System.out.println($username+" used "+$card.getName()+".");
+		coin($player,$amount);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+*/
+
+rule "Play Treasure card"
+	salience 10
+	when
+		$state : Phase( this == Phase.PURCHASE )
+		actualPlayer : Player(  )
+		$card : Treasure( $amount : value )
+		$action : Action( this == Action.USE )
+	then
+		System.out.println("RUle for buying fired!");
+		String username = actualPlayer.getUsername();
+			System.out.println(username+" used "+$card.getName()+".");
+			coin(actualPlayer,$amount);
+		
+		
+		//retract($card)
+		//retract($action)
 end
 
 
@@ -197,151 +231,92 @@ end
 |       ||  |_|  ||       |                                                 
 |  _   | |       ||_     _|                                                 
 | |_|   ||       |  |   |                                                   
-|_______||_______|  |___|                                                                                              
+|_______||_______|  |___|                                                   
+ __   __  ___   _______  _______  _______  ______    ___   _______  _______ 
+|  | |  ||   | |       ||       ||       ||    _ |  |   | |       ||       |
+|  |_|  ||   | |       ||_     _||   _   ||   | ||  |   | |    ___||  _____|
+|       ||   | |       |  |   |  |  | |  ||   |_||_ |   | |   |___ | |_____ 
+|       ||   | |      _|  |   |  |  |_|  ||    __  ||   | |    ___||_____  |
+ |     | |   | |     |_   |   |  |       ||   |  | ||   | |   |___  _____| |
+  |___|  |___| |_______|  |___|  |_______||___|  |_||___| |_______||_______|                                                                                               
+*/
+/*
+rule "Buy Victories card"
+	when
+		$player : Player( $username : username )
+		$card : Victory(  )
+		$action : Action( this == Action.BUY )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
 */
 
-rule "Choice card to buy rule"
-	when 
+rule "Buy a general card"
+	when
 		$phase : Phase( this == Phase.PURCHASE )
+		actualPlayer : Player(  )
+		$action : Action( this == Action.BUY )
+		$card : Card(  )
 	then
-		Card cardToBuy = null;
-		
-		//Choice a card to buy randomly
-		int randomInt = gameLogic.nextInt(7);
-		
-		switch (randomInt) {
-			case 0:
-				//Copper is free
-				if(!table.getCopperDeck().isEmpty()){
-					cardToBuy = table.getCopperDeck().remove(0);
-				}
-				break;
-			case 1:
-				if(!table.getSilverDeck().isEmpty()){
-					if(actualPlayer.getVirtualCoins() >= 3){
-						cardToBuy = table.getCopperDeck().remove(0);
-					}
-				}
-				break;
-			case 2:
-				if(!table.getGoldDeck().isEmpty()){
-					if(actualPlayer.getVirtualCoins() >= 6){
-						cardToBuy = table.getGoldDeck().remove(0);
-					}
-				}
-				break;
-			case 3:
-				if(!table.getDuchyDeck().isEmpty()){
-					if(actualPlayer.getVirtualCoins() >= 5){
-						cardToBuy = table.getDuchyDeck().remove(0);
-					}
-				}
-				break;
-			case 4:
-				if(!table.getEstateDeck().isEmpty()){
-					if(actualPlayer.getVirtualCoins() >= 2){
-						cardToBuy = table.getEstateDeck().remove(0);
-					}
-				}
-				break;
-			case 5:
-				if(!table.getProvinceDeck().isEmpty()){
-					if(actualPlayer.getVirtualCoins() >= 8){
-						cardToBuy = table.getProvinceDeck().remove(0);
-					}
-				}
-				break;
-			case 6:
-				int randomIntKingdom;
-				do{
-					randomIntKingdom = gameLogic.nextInt(10);
-					cardToBuy = actualPlayer.getKingdomCard(table,randomIntKingdom);
-				}while(cardToBuy == null);
-				break;
-		}
-
-		
-		//If I choice a card (in the card is different to null so I can buy it 
-		//because I've just control the actualplayer's coins
-		if(cardToBuy != null){
-			int count = 0;
-			List<Treasure> treasuresToUse = new ArrayList<Treasure>();
-			//Looking for the treasures to use (I don't implemented any particural algorithm)
-			do{
-				for(Card card : actualPlayer.getHand())
-				{
-					if(card instanceof Treasure)
-					{
-						count += card.getCost();
-						treasuresToUse.add((Treasure)card);
-					}
-				}
-			}while(count < cardToBuy.getCost());
-			
-			
-			for(Treasure treasure : treasuresToUse){
-				//Discard the selected treasures (from hand to discard deck)
-				actualPlayer.getDiscard().add(treasure);
-				actualPlayer.getHand().remove(treasure);
-				//I remove the virtual coins of the discarded treasure
-				actualPlayer.decreaseVirtualCoins(treasure.getCost());
-			}
-			
-			//Add to hand the cardToBuy
-			actualPlayer.getHand().add(cardToBuy);
-			
-			//If I buy a Treasure
-			if(cardToBuy instanceof Treasure){
-				Treasure cardTreasure = (Treasure)cardToBuy;
-				actualPlayer.setVirtualCoins(actualPlayer.getVirtualCoins()+cardTreasure.getValue());
-			}
-			
-			//If can I buy another card
-			if(actualPlayer.getPurchases() > 0){
-				actualPlayer.decreasePurchases();
-			}
-			//End of purchase phase
-			else{
-				retract(Phase.PURCHASE);
-				insert(Phase.CLEANUP);
-			}
-		}
+		buy(actualPlayer,$card);
+		retract($action);
+		retract($card);
 end
 
 
 
-
-rule "Clean up phase rule"
-	when
-		$phase : Phase( this == Phase.CLEANUP )
+rule "Purchase Phase rule"
+	salience 15
+	when 
+		$phase : Phase( this == Phase.PURCHASE )
+		actualPlayer : Player(  )
+		not Action(  )
 	then
-		// Actual player discard his/her hand and draw 5 new cards from the deck
-		actualPlayer.getDiscard().addAll(actualPlayer.getHand());
-		actualPlayer.getHand().clear();
-		// Deck has less than 5 cards, so draw the size of the deck and the remaining from the discard pile
-		if(actualPlayer.getDeck().size() < 5) {
-			int size = actualPlayer.getDeck().size();
-			int discardDraw = 5 - size;
-			for(int i = 0; i < size; i++){
-				actualPlayer.getHand().add(actualPlayer.getDeck().remove(0));
-			}
-			Collections.shuffle(actualPlayer.getDiscard());
-			actualPlayer.getDeck().addAll(actualPlayer.getDiscard());
-			actualPlayer.getDiscard().clear();
-			for(int i = 0; i < discardDraw; i++){
-				actualPlayer.getHand().add(actualPlayer.getDeck().remove(0));
+		System.out.println(actualPlayer.getUsername() + " passed to purchase phase");
+		Card cardToBuy = null;
+		if(actualPlayer.getPurchases() > 0) {
+			
+			//Choose a card to buy randomly from the 7 data structures holding decks in table
+			List<Card> ca = table.getAllCardsThatCanBeBoughtWithAmountOfCoins(actualPlayer.getVirtualCoins());
+			int randomInt = gameLogic.nextInt(ca.size());
+			System.out.println("Card that will be bought is: " + ca.get(randomInt).getName());
+			cardToBuy = ca.get(randomInt);
+			System.out.println("Chosen card: " + cardToBuy);
+			//If I choose a card
+			if(cardToBuy != null){
+				//I remove the virtual coins of the card
+				actualPlayer.decreaseVirtualCoins(cardToBuy.getCost());
+				actualPlayer.decreasePurchases();
+				table.decreaseDeckSize(cardToBuy);
+				insert(Action.BUY);
+				insert(cardToBuy);
+					
+				
 			}
 		} else {
-			// Deck has 5 cards or more, normal draw
-			for(int i = 0; i < 5; i++){
-				actualPlayer.getHand().add(actualPlayer.getDeck().remove(0));
-			}
+			retract($phase);
+			insert(Phase.CLEANUP);
 		}
-		
-		retract(Phase.CLEANUP);
+end
+
+rule "Cleanup phase rule"
+	when
+		$phase : Phase( this == Phase.CLEANUP )
+		actualPlayer : Player(  )
+		not Action(  )
+	then
+		System.out.println(actualPlayer.getUsername() + " is now on cleanup phase");
+		draw(actualPlayer,5);
+		//Check if end game conditions are satisifed at the end of each turn
+		table.checkEndGame();
+		retract($phase);
 		insert(Phase.ENDTURN);
 		
 end
+
 
 
 /*
@@ -361,51 +336,70 @@ end
 |___| |_||___| |_|  |__||_______||______| |_______||_|   |_|
 */
 
-
-
-rule "Play Artisan card"
-	salience 20
+/*
+rule "Play Witch card"
 	when
+		$player : Player( $username : username )
+		$opponents : List(  )
+		$card : Witch(  )
+		$action : Action( this == Action.USE )
+	then
+		buy($player,$card);
+		retract($player)
+		retract($card)
+		retract($action)
+end
+*/
+
+
+/*
+--------------------------------------
+		PLAY AND BUY KINGDOMS
+--------------------------------------
+*/
+rule "Play Artisan card"
+	when
+		$player : Player( $username : username )
 		$table : Table(  )
 		$card : Artisan(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
+		System.out.println($username+" used "+$card.getName()+".");
 		// gain a card to your hand costing up to 5 either from Treasure, Victory or Kingdom decks
 		
 		// put a card from your hand onto your deck
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 
 rule "Play Adventurer card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Adventurer(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
+		System.out.println($username+" used "+$card.getName()+".");
 		// reveal cards from your deck until you reveal 2 Treasure cards
 		// put those Treasure cards into your hand and discard the other revealed cards
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 rule "Play Bandit card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Bandit(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
+		System.out.println($username+" used "+$card.getName()+".");
 		// gain a Gold card
 		// each other player reveals the tops 2 cards of their deck 
 		// he has to trash the revealed Tresure other than Copper 
 		// he discards the rest.
+		retract($player)
 		retract($card)
 		retract($action)
 end
@@ -413,13 +407,12 @@ end
 
 
 rule "Play Bureaucrat card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Bureaucrat()
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
+		System.out.println($username+" used "+$card.getName()+".");
 		//It is a gainer which lets you gain Silver cards without buying them, 
 		//and puts them on top of your deck so you can use them next turn; 
 		//it also slows down your opponents by making them put Victory cards from 
@@ -429,6 +422,7 @@ rule "Play Bureaucrat card"
 		//for(Player p : ListaGiocatori){
 		//while(p.
 		//}
+		retract($player)
 		retract($card)
 		retract($action)
 end
@@ -436,29 +430,29 @@ end
 
 
 rule "Play Cellar card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Cellar( $amount : amount )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		discard(actualPlayer,$amount);
-		draw(actualPlayer,$amount);
+		System.out.println($username+" used "+$card.getName()+".");
+		discard($player,$amount);
+		draw($player,$amount);
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 rule "Play Chancellor card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Chancellor(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		coin(actualPlayer,2);
+		System.out.println($username+" used "+$card.getName()+".");
+		coin($player,2);
 		// you have to put your deck onto your discard pile
+		retract($player)
 		retract($card)
 		retract($action)
 end
@@ -466,15 +460,15 @@ end
 
 
 rule "Play Chapel card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Chapel( $amount : amount )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
 		
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
+		System.out.println($username+" used "+$card.getName()+".");
 		// trash cards here
+		retract($player)
 		retract($card)
 		retract($action)
 end
@@ -482,14 +476,15 @@ end
 
 rule "Play Councilroom card"
 	when
+		$player : Player( $username : username )
 		$card : Councilroom(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		draw(actualPlayer,4);
-		addPurchase(actualPlayer,1);
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,4);
+		addPurchase($player,1);
 		// each other player draws a card
+		retract($player)
 		retract($card)
 		retract($action)
 end
@@ -499,48 +494,47 @@ end
 
 
 rule "Play Feast card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Feast(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
 		// trash this card 
 		// gain a card costing up to 5 
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		addActions(actualPlayer,2);
-		addPurchase(actualPlayer,1);
-		coin(actualPlayer,2);
+		System.out.println($username+" used "+$card.getName()+".");
+		addActions($player,2);
+		addPurchase($player,1);
+		coin($player,2);
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 
 rule "Play Festival card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Festival(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		draw(actualPlayer,1);
-		addPurchase(actualPlayer,1);
-		coin(actualPlayer,2);
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,1);
+		addPurchase($player,1);
+		coin($player,2);
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 
 rule "Play Gardens card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Gardens(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		retract(actualPlayer)
+		System.out.println($username+" used "+$card.getName()+".");
+		retract($player)
 		retract($card)
 		retract($action)
 end
@@ -564,102 +558,101 @@ rule "Play Harbinger card"
 end
 */
 rule "Play Harbinger card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Harbinger(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		draw(actualPlayer,1);
-		addActions(actualPlayer,1);
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,1);
+		addActions($player,1);
 		// look through your discrda pile 
 		// you may put a card from it into your deck
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 rule "Play Laboratory card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Laboratory(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		draw(actualPlayer,2);
-		addActions(actualPlayer,1);
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,2);
+		addActions($player,1);
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 
 rule "Play Library card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Library(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
+		System.out.println($username+" used "+$card.getName()+".");
 		// draw until you have 7 cards in hand,
-		int lastHandSize = actualPlayer.getHand().size();
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		draw(actualPlayer,Math.max(7,Math.abs(7-actualPlayer.getHand().size())));
+		int lastHandSize = $player.getHand().size();
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,Math.max(7,Math.abs(7-$player.getHand().size())));
 		// skipping any Action cards you choose to
 		// set them aside and discard them afterwards
 		//draw($player,?);
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 
 rule "Play Market card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Market(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		draw(actualPlayer,1);
-		addActions(actualPlayer,1);
-		addPurchase(actualPlayer,1);
-		coin(actualPlayer,1);
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,1);
+		addActions($player,1);
+		addPurchase($player,1);
+		coin($player,1);
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 
 rule "Play Mine card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Mine(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		draw(actualPlayer,1);
-		addActions(actualPlayer,1);
-		addPurchase(actualPlayer,1);
-		coin(actualPlayer,1);
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,1);
+		addActions($player,1);
+		addPurchase($player,1);
+		coin($player,1);
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 rule "Play Merchant card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Merchant(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		draw(actualPlayer,1);
-		addActions(actualPlayer,1);
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,1);
+		addActions($player,1);
 		// the first time you play a Silver this turn 
 		// coin($player,1);
-		
+		retract($player)
 		
 		retract($card)
 		retract($action)
@@ -667,11 +660,10 @@ end
 
 
 rule "Play Militia card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Market(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 		//TODO I must insert player list
 	then
 		//for(Player p : ListGiocatori){
@@ -680,58 +672,70 @@ rule "Play Militia card"
 		//p.getHand().remove($card);
 		//}
 		//}
-		coin(actualPlayer,2);
-		
+		coin($player,2);
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 
 rule "Play Workshop card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Workshop(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		addPurchase(actualPlayer,1);
-		coin(actualPlayer,2);
-		
+		System.out.println($username+" used "+$card.getName()+".");
+		addPurchase($player,1);
+		coin($player,2);
+		retract($player)
 		retract($card)
 		retract($action)
 end
-
+/*
+ _______  __   __  __   __                                  
+|  _    ||  | |  ||  | |  |                                 
+| |_|   ||  | |  ||  |_|  |                                 
+|       ||  |_|  ||       |                                 
+|  _   | |       ||_     _|                                 
+| |_|   ||       |  |   |                                   
+|_______||_______|  |___|                                   
+ ___   _  ___   __    _  _______  ______   _______  __   __ 
+|   | | ||   | |  |  | ||       ||      | |       ||  |_|  |
+|   |_| ||   | |   |_| ||    ___||  _    ||   _   ||       |
+|      _||   | |       ||   | __ | | |   ||  | |  ||       |
+|     |_ |   | |  _    ||   ||  || |_|   ||  |_|  ||       |
+|    _  ||   | | | |   ||   |_| ||       ||       || ||_|| |
+|___| |_||___| |_|  |__||_______||______| |_______||_|   |_|
+*/
 
 
 rule "Play Moat card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Moat(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		draw(actualPlayer,2);
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,2);
 		// when amother player plays an Attack card, 
 		// you can reveal it from your hand and 
 		// Attack card doesn't affect you
-		
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 
 rule "Play Moneylender card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Moneylender(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
+		System.out.println($username+" used "+$card.getName()+".");
 		// you may trash a Copper from your hand for 3 
-		
+		retract($player)
 		retract($card)
 		retract($action)
 end
@@ -739,65 +743,62 @@ end
 
 rule "Play Poacher card"
 	when
+		$player : Player( $username : username )
 		$card : Poacher(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		draw(actualPlayer,1);
-		addActions(actualPlayer,1);
-		coin(actualPlayer,1);
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,1);
+		addActions($player,1);
+		coin($player,1);
 		// discard a card per empty supply card
-		
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 
 rule "Play Remodel card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Chapel(  )
-		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
+		$action : Action( this == Action.BUY )
 	then
-		buy(actualPlayer,$card);
-		
+		buy($player,$card);
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 
 rule "Play Sentry card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Sentry(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		draw(actualPlayer,1);
-		addActions(actualPlayer,1);
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,1);
+		addActions($player,1);
 		// look at the top 2 card of your deck 
 		// trash and/ot discard any number of them
 		// put the rest back on top in any order
-		
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 
 rule "Play Smithy card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Smithy(  )
 		// I need the action to understand what the player will do with that card
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		draw(actualPlayer,3);
-		
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,3);
+		retract($player)
 		retract($card)
 		retract($action)
 end
@@ -806,51 +807,47 @@ end
 
 
 rule "Play Spy card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Spy(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		draw(actualPlayer,1);
-		addActions(actualPlayer,1);
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,1);
+		addActions($player,1);
 		// tutti i giocatori rivelare una carta dal proprio deck 
 		// possono decidere se scartarla o rimetterla al proprio posto
-		
+		retract($player)
 		retract($card)
 		retract($action)
 end
-
 rule "Play Thief card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Thief(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
+		System.out.println($username+" used "+$card.getName()+".");
 		// each other player reveals the top 2 cards of his deck
 		// if they revelead any treasure coards 
 		// they trash one of them that you choose
 		// you may gain any or all these thrashed cards
 		// they discard the other revealed cards
-		
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 
 rule "Play Throneroom card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Throneroom(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
+		System.out.println($username+" used "+$card.getName()+".");
 		// you may play an Action card from your hand twice
-		
+		retract($player)
 		retract($card)
 		retract($action)
 end
@@ -858,18 +855,17 @@ end
 
 
 rule "Play Vassal card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Vassal(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		coin(actualPlayer,2);
+		System.out.println($username+" used "+$card.getName()+".");
+		coin($player,2);
 		// discard the top card of your deck
 		// if it's anAction card,
 		// you may play it
-		
+		retract($player)
 		retract($card)
 		retract($action)
 end
@@ -877,47 +873,68 @@ end
 
 
 rule "Play Village card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Village(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		draw(actualPlayer,1);
-		addActions(actualPlayer,2);
-		
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,1);
+		addActions($player,2);
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 
 rule "Play Witch card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Witch(  )
 		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		draw(actualPlayer,2);
+		System.out.println($username+" used "+$card.getName()+".");
+		draw($player,2);
 		// each other player gains a curse
-		
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
 
 rule "Play Woodcutter card"
-	salience 20
 	when
+		$player : Player( $username : username )
 		$card : Village(  )
-		$action : Action( this == Action.USE )
-		$phase : Phase( this == Phase.ACTION )
+		$action : Action( this == Action.BUY )
 	then
-		System.out.println(actualPlayer.getUsername()+" used "+$card.getName()+".");
-		buy(actualPlayer,$card);
+		buy($player,$card);
+		retract($player)
 		retract($card)
 		retract($action)
 end
 
+
+
+
+//WIN RULE
+rule "End game rule"
+	salience 20
+	when
+		$situation : Table( situation == 2 )
+		$phase : Phase( this == Phase.ENDTURN )
+	then
+		System.out.println("The game is finished . . .");
+		//Sort ascendent the players (the class player implements Comparable)
+		Collections.sort(players);
+		//Reverse the list
+		Collections.reverse(players);
+		//Print the ranking
+		System.out.println("***RANK***");
+		for (int j = 0; j < players.size(); j++)
+			System.out.println((j+1)+"-\t"+players.get(j));
+			
+		
+		
+end
+			
