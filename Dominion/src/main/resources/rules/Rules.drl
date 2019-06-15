@@ -356,6 +356,9 @@ end
 		PLAY AND BUY KINGDOMS
 --------------------------------------
 */
+
+//Gain a card to your hand costing up 5 coins
+//Put a card from your hand onto your deck
 rule "Play Artisan card"
 	when
 		$player : Player( $username : username )
@@ -384,7 +387,9 @@ rule "Play Artisan card"
 		retract($action)
 end
 
-
+//Reveal cards from your deck until you reveal 2 treasure cards.
+//Put those Treasure card into your hand
+//and discard the other revealed cards
 rule "Play Adventurer card"
 	when
 		$player : Player( $username : username )
@@ -416,6 +421,10 @@ rule "Play Adventurer card"
 		retract($action)
 end
 
+//Gain a Gold.
+//Each other player reveals the top 2 cards of their deck,
+//trashes a revealed Treasure other than Copper
+//and Discards the rest
 rule "Play Bandit card"
 	when
 		$player : Player( $username : username )
@@ -469,7 +478,10 @@ rule "Play Bandit card"
 end
 
 
-
+//Gain a Silver onto your deck.
+//Each other player reveals a Victory card
+//from their hand and puts it onto their 
+//deck (or reveals a hand with no victory cards).
 rule "Play Bureaucrat card"
 	when
 		$player : Player( $username : username )
@@ -511,17 +523,24 @@ end
 rule "Play Cellar card"
 	when
 		$player : Player( $username : username )
-		$card : Cellar( $amount : amount )
+		$card : Cellar( )
 		$action : Action( this == Action.USE )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
-		discard($player,$amount);
-		draw($player,$amount);
+		//Choose a number between 0 and #CardInHand
+		int randomNumberOfCard = gameLogic.nextInt($player.getHand().size());
+		//Discard #randomNumberOfCard
+		discard($player,randomNumberOfCard);
+		//Draw #randomNumberOfCard
+		draw($player,randomNumberOfCard);
+		
 		retract($player)
 		retract($card)
 		retract($action)
 end
 
+// +2 Coins
+// You may immediately put your deck into your discard pile
 rule "Play Chancellor card"
 	when
 		$player : Player( $username : username )
@@ -537,7 +556,7 @@ rule "Play Chancellor card"
 end
 
 
-
+// Trash up to 4 cards from your hand
 rule "Play Chapel card"
 	when
 		$player : Player( $username : username )
@@ -552,8 +571,10 @@ rule "Play Chapel card"
 		retract($action)
 end
 
-
-rule "Play Councilroom card"
+// +4 cards
+// +1 buy
+// each other player draws a card
+rule "Play Council room card"
 	when
 		$player : Player( $username : username )
 		$card : Councilroom(  )
@@ -568,10 +589,8 @@ rule "Play Councilroom card"
 		retract($action)
 end
 
-
-
-
-
+//Trash this card.
+//Gain a card costing up to 5 coins
 rule "Play Feast card"
 	when
 		$player : Player( $username : username )
@@ -589,7 +608,9 @@ rule "Play Feast card"
 		retract($action)
 end
 
-
+// +2 actions
+// +1 buy
+// +2 coins
 rule "Play Festival card"
 	when
 		$player : Player( $username : username )
@@ -605,7 +626,8 @@ rule "Play Festival card"
 		retract($action)
 end
 
-
+// Worth 1 victory per 10 cards you have
+// (round down)
 rule "Play Gardens card"
 	when
 		$player : Player( $username : username )
@@ -636,6 +658,11 @@ rule "Play Harbinger card"
 		retract($action)
 end
 */
+
+// +1 card
+// +1 action
+// Look through your discard pile.
+// You may put a card from it onto your deck.
 rule "Play Harbinger card"
 	when
 		$player : Player( $username : username )
@@ -652,6 +679,8 @@ rule "Play Harbinger card"
 		retract($action)
 end
 
+// +2 cards
+// +1 action
 rule "Play Laboratory card"
 	when
 		$player : Player( $username : username )
@@ -666,7 +695,9 @@ rule "Play Laboratory card"
 		retract($action)
 end
 
-
+//Draw until you have 7 cards in hand, skipping
+// any Action cards you choose to; set those aside
+// discarding them afterwards
 rule "Play Library card"
 	when
 		$player : Player( $username : username )
@@ -718,15 +749,49 @@ rule "Play Mine card"
 		$action : Action( this == Action.USE )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
-		draw($player,1);
-		addActions($player,1);
-		addPurchase($player,1);
-		coin($player,1);
+		
+		//Selection of the Treasure
+		Treasure selectedTreasuresToTrash = null;
+		for(Card card : $player.getHand()){
+			if(card instanceof Treasure){
+				selectedTreasuresToTrash = (Treasure) card;
+				break;
+			}
+		}
+		
+		//If I have a treasure
+		if(selectedTreasuresToTrash != null)
+		{
+			//trash the selectedTreasures
+			trashPile.add(selectedTreasuresToTrash);
+			$player.getHand().remove(selectedTreasuresToTrash);
+						
+			//If there are Gold card in the gold deck and the selectedTreasuresToTrash 
+			// is not a copper I can gain a Gold deck
+			if(	!table.getGoldDeck().isEmpty() && 
+				!(selectedTreasuresToTrash instanceof Copper)){
+				$player.getHand().add(table.getGoldDeck().remove(0));
+			} else {
+				//Try to gain a silver else a cooper
+				try{
+					$player.getHand().add(table.getSilverDeck().remove(0));
+				}catch(Exception e){
+					$player.getHand().add(table.getCopperDeck().remove(0));
+				}
+			}
+		}else{
+			System.out.println($username+" has not treasure in his/her hand.");
+		}
+		
 		retract($player)
 		retract($card)
 		retract($action)
 end
 
+//+1 card
+//+1 action
+//the first time you play a silver this turn
+//+1 coin
 rule "Play Merchant card"
 	when
 		$player : Player( $username : username )
@@ -746,28 +811,35 @@ end
 
 
 // +2 Coins
-// Each other player discards
-// down to 3 cards in his hard
+// Each other player discards down to 3 cards in his hand
+
+//FAQ
+//Players with 3 or fewer cards in hand do not discard any cards.
+//Players with more cards discard until they only have 3.
 rule "Play Militia card"
 	when
 		$player : Player( $username : username )
 		$card : Market(  )
 		$action : Action( this == Action.USE )
-		//TODO I must insert player list
 	then
-		//for(Player p : ListGiocatori){
-		//while(p.getHand().size()>3)
-		//{
-		//p.getHand().remove($card);
-		//}
-		//}
 		coin($player,2);
+		for(Object player : players){
+			Player p = (Player)player;
+			if(!p.equals($player)){
+				if(p.getHand().size()>=3){
+					discard(p, 3);
+				}
+			}
+		}
 		retract($player)
 		retract($card)
 		retract($action)
 end
 
+//Gain a card costing up to 4
 
+//FAQ
+//The card you gain comes from the Supply and is put into your discard pile.
 rule "Play Workshop card"
 	when
 		$player : Player( $username : username )
@@ -775,30 +847,19 @@ rule "Play Workshop card"
 		$action : Action( this == Action.USE )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
-		addPurchase($player,1);
-		coin($player,2);
+		
+		//Get all gainable card
+		List<Card> listOfGainableCard = table.getAllCardsThatCanBeGainedUpToAmount(4);
+		//Choose the card to gain between listOfGainableCard
+		Card selectedCardToGain = listOfGainableCard.get(gameLogic.nextInt(listOfGainableCard.size()));
+		//Add to hand the selected card
+		$player.getHand().add(selectedCardToGain);
+		//Remove to deck the selected card
+		table.decreaseDeckSize(selectedCardToGain);
 		retract($player)
 		retract($card)
 		retract($action)
 end
-/*
- _______  __   __  __   __                                  
-|  _    ||  | |  ||  | |  |                                 
-| |_|   ||  | |  ||  |_|  |                                 
-|       ||  |_|  ||       |                                 
-|  _   | |       ||_     _|                                 
-| |_|   ||       |  |   |                                   
-|_______||_______|  |___|                                   
- ___   _  ___   __    _  _______  ______   _______  __   __ 
-|   | | ||   | |  |  | ||       ||      | |       ||  |_|  |
-|   |_| ||   | |   |_| ||    ___||  _    ||   _   ||       |
-|      _||   | |       ||   | __ | | |   ||  | |  ||       |
-|     |_ |   | |  _    ||   ||  || |_|   ||  |_|  ||       |
-|    _  ||   | | | |   ||   |_| ||       ||       || ||_|| |
-|___| |_||___| |_|  |__||_______||______| |_______||_|   |_|
-*/
-
-
 
 // + 2 Cards
 // When another player plays an Attack card,
@@ -821,6 +882,7 @@ rule "Play Moat card"
 end
 
 
+//You may trash a Copper from your hand for +3 coins
 rule "Play Moneylender card"
 	when
 		$player : Player( $username : username )
@@ -835,6 +897,10 @@ rule "Play Moneylender card"
 end
 
 
+// +1 Card
+// +1 Action
+// +1 coin
+// Discard a card per empty supply pile
 rule "Play Poacher card"
 	when
 		$player : Player( $username : username )
@@ -860,13 +926,33 @@ rule "Play Remodel card"
 		$card : Chapel(  )
 		$action : Action( this == Action.BUY )
 	then
-		buy($player,$card);
+		
+		if($player.getHand().size() !=0) {
+			int randomNumberOfCard = gameLogic.nextInt($player.getHand().size());
+			//Select a card to trash
+			Card selectedCardToTrash = $player.getHand().remove(randomNumberOfCard);
+			//Get all gainable card
+			List<Card> listOfGainableCard = table.getAllCardsThatCanBeGainedUpToAmount(selectedCardToTrash.getCost()+2);
+			//Choose the card to gain between listOfGainableCard
+			Card selectedCardToGain = listOfGainableCard.get(gameLogic.nextInt(listOfGainableCard.size()));
+			//Add to hand the selected card
+			$player.getHand().add(selectedCardToGain);
+			//Remove to deck the selected card
+			table.decreaseDeckSize(selectedCardToGain);
+		} else {
+			System.out.println($username+" has not any card in his/her hand.");
+		}
+		
 		retract($player)
 		retract($card)
 		retract($action)
 end
 
-
+//+1 Card
+//+1 Action
+//Look at the top 2 cards of your deck.
+//Trash and/or discard any number of them.
+//Put the rest back on the top in any order
 rule "Play Sentry card"
 	when
 		$player : Player( $username : username )
@@ -901,8 +987,10 @@ rule "Play Smithy card"
 end
 
 
-
-
+//+1 card
+//+1 action
+//Each player (including you) reveals the top
+//card of his deck and either discards it or puts it back, your choice
 rule "Play Spy card"
 	when
 		$player : Player( $username : username )
@@ -918,6 +1006,12 @@ rule "Play Spy card"
 		retract($card)
 		retract($action)
 end
+
+//Each other player reveals the top 2 card of his deck.
+//If they revealed any treasure card, they trash one
+//of them that you choose.
+//You may gain any of all of thes trashed card.
+//They discard the orger revealed cards
 rule "Play Thief card"
 	when
 		$player : Player( $username : username )
@@ -935,8 +1029,9 @@ rule "Play Thief card"
 		retract($action)
 end
 
-
-rule "Play Throneroom card"
+//You may play and Action card from 
+//your hand twice
+rule "Play Throne room card"
 	when
 		$player : Player( $username : username )
 		$card : Throneroom(  )
@@ -950,7 +1045,9 @@ rule "Play Throneroom card"
 end
 
 
-
+// +2 coins
+// Discard the top card of your deck.
+//If it's an Action card, you may play it
 rule "Play Vassal card"
 	when
 		$player : Player( $username : username )
@@ -968,7 +1065,8 @@ rule "Play Vassal card"
 end
 
 
-
+// +1 card
+// +2 actions
 rule "Play Village card"
 	when
 		$player : Player( $username : username )
@@ -983,7 +1081,8 @@ rule "Play Village card"
 		retract($action)
 end
 
-
+// +2 cards
+// Each other player gains a Curse
 rule "Play Witch card"
 	when
 		$player : Player( $username : username )
@@ -999,13 +1098,16 @@ rule "Play Witch card"
 end
 
 
+// +1 buy
+// +2 coins
 rule "Play Woodcutter card"
 	when
 		$player : Player( $username : username )
-		$card : Village(  )
+		$card : Woodcutter (  )
 		$action : Action( this == Action.BUY )
 	then
-		buy($player,$card);
+		addPurchase($player,1);
+		coin($player,2);
 		retract($player)
 		retract($card)
 		retract($action)
@@ -1030,8 +1132,5 @@ rule "End game rule"
 		System.out.println("***RANK***");
 		for (int j = 0; j < players.size(); j++)
 			System.out.println((j+1)+"-\t"+players.get(j));
-			
-		
-		
 end
 			
