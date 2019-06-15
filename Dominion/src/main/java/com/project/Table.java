@@ -116,13 +116,12 @@ public class Table {
 		// Now, each player draws 5 cards from his Deck. These cards are the
 		// player’s hand.
 		for (Player player : players) {
-//			for (j = 0; j < 7; j++)
-//				player.addToDeck(copperDeck.remove(0));
-//			for (j = 0; j < 3; j++)
-//				player.addToDeck(estateDeck.remove(0));
-//			player.shuffleDeck();
-			for (j = 0; j < 10; j++)
-				player.addToDeck(new Bandit());
+			for (j = 0; j < 7; j++)
+				player.addToDeck(copperDeck.remove(0));
+			for (j = 0; j < 3; j++)
+				player.addToDeck(estateDeck.remove(0));
+			player.shuffleDeck();
+			
 			for (j = 0; j < 5; j++)
 				player.addToHand(player.getDeck().remove(0));
 		}
