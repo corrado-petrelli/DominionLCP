@@ -127,7 +127,7 @@ rule "Switch Turn"
 		actualPlayer : Player(  )
 		not Action(  )
 	then
-		System.out.println(actualPlayer.getUsername() + " ended its turn");
+		System.out.println(actualPlayer.getUsername() + " ENDED its turn");
 		int indexActualPlayer = players.indexOf(actualPlayer);
 		//If the actual player is the last player of the list
 		if(indexActualPlayer == players.size() - 1){
@@ -135,6 +135,7 @@ rule "Switch Turn"
 		} else {
 			actualPlayer = (Player)players.get(indexActualPlayer+1);
 		}
+		System.out.println("________________________________________________");
 		System.out.println("Now it's the turn of " + actualPlayer.getUsername());
 		//Reset the number of Actions and Purchases to the default value (1)
 		actualPlayer.setActions(1);
@@ -161,7 +162,7 @@ rule "Action Phase Rule"
 		actualPlayer : Player(  )
 		not Action(  )
 	then
-		System.out.println(actualPlayer.getUsername() + " entered in action phase rule");
+		System.out.println(actualPlayer.getUsername() + " entered in ACTION phase rule");
 		if(actualPlayer.getActions() > 0) {
 			Card kingdomCardToPlay = actualPlayer.getPlayableKingdomCardFromHand();
 			if(kingdomCardToPlay != null)
@@ -270,7 +271,7 @@ rule "Purchase Phase rule"
 		actualPlayer : Player(  )
 		not Action(  )
 	then
-		System.out.println(actualPlayer.getUsername() + " passed to purchase phase");
+		System.out.println(actualPlayer.getUsername() + " passed to PURCHASE phase");
 		Card cardToBuy = null;
 		if(actualPlayer.getPurchases() > 0) {
 			actualPlayer.playAllTreasureCardsInHand();
@@ -302,7 +303,7 @@ rule "Cleanup phase rule"
 		actualPlayer : Player(  )
 		not Action(  )
 	then
-		System.out.println(actualPlayer.getUsername() + " is now on cleanup phase");
+		System.out.println(actualPlayer.getUsername() + " is now on CLEANUP phase");
 		actualPlayer.getDiscard().addAll(actualPlayer.getHand());
 		System.out.println(actualPlayer.getUsername() + " discarded the hand");
 		actualPlayer.getHand().clear();
@@ -490,7 +491,7 @@ rule "Play Bureaucrat card"
 		gainOntoDeck(table,$player,new Silver());
 		
 		for(Player opp : ((List<Player>)$opponents)) {
-			int cardToPutOntoDeck = null;
+			int cardToPutOntoDeck = 0;
 			if(opp.getHand().indexOf(new Estate()) > 0) {
 				cardToPutOntoDeck = opp.getHand().indexOf(new Estate());
 				System.out.println(opp.getUsername() + " reveals " + new Estate().getName());
@@ -504,6 +505,9 @@ end
 
 
 
+// + 1 Action
+// Discard any number of card
+// +1 Card per card discarded
 rule "Play Cellar card"
 	when
 		$player : Player( $username : username )
@@ -683,6 +687,10 @@ rule "Play Library card"
 end
 
 
+// +1 Card
+// +1 Action
+// +1 Buy
+// +1 Coin
 rule "Play Market card"
 	when
 		$player : Player( $username : username )
@@ -700,6 +708,9 @@ rule "Play Market card"
 end
 
 
+//You may trash a Treasure from your hand.
+//Gain a Treasure to your hand costing up to 3 coins
+//more than it
 rule "Play Mine card"
 	when
 		$player : Player( $username : username )
@@ -734,6 +745,9 @@ rule "Play Merchant card"
 end
 
 
+// +2 Coins
+// Each other player discards
+// down to 3 cards in his hard
 rule "Play Militia card"
 	when
 		$player : Player( $username : username )
@@ -785,6 +799,11 @@ end
 */
 
 
+
+// + 2 Cards
+// When another player plays an Attack card,
+// you may first reveal this from your hand, 
+// to be unaffected by it
 rule "Play Moat card"
 	when
 		$player : Player( $username : username )
@@ -832,7 +851,9 @@ rule "Play Poacher card"
 		retract($action)
 end
 
-
+//Trash a card from your hand.
+//Gain a card costing up to 2 coins
+//more than it
 rule "Play Remodel card"
 	when
 		$player : Player( $username : username )
@@ -864,6 +885,7 @@ rule "Play Sentry card"
 end
 
 
+// +3 Cards
 rule "Play Smithy card"
 	when
 		$player : Player( $username : username )
