@@ -73,11 +73,14 @@ public class DroolsTest {
         	//Initial cards distribution
         	table.getCardsToThePlayers(players);
         	
+        	
+        	
         	Random r = new Random();
         	
         	kSession.setGlobal("players", players);
         	kSession.setGlobal("table", table);
         	kSession.setGlobal("gameLogic", r);
+        	kSession.setGlobal("trashPile", table.getTrashDeck());
 			     	
 			/*
 				██████╗ ██╗      █████╗ ██╗   ██╗

@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 
 import com.project.cards.Card;
 import com.project.cards.curses.Curse;
+import com.project.cards.kingdoms.Bandit;
 import com.project.cards.kingdoms.Cellar;
 import com.project.cards.kingdoms.Kingdom;
 import com.project.cards.kingdoms.Market;
@@ -55,7 +56,7 @@ public class Table {
 	private List<Curse> curseDeck = new ArrayList<>();
 
 	//Trash
-	private List<Card> trashDeck = new ArrayList<>(0);
+	private List<Card> trashDeck = new ArrayList<>();
 
 	//Kingdoms
 	//It's better if keys are string when we deal with the decks during buy and clean-up phases
@@ -115,14 +116,52 @@ public class Table {
 		// Now, each player draws 5 cards from his Deck. These cards are the
 		// player’s hand.
 		for (Player player : players) {
-			for (j = 0; j < 7; j++)
-				player.addToDeck(copperDeck.remove(0));
-			for (j = 0; j < 3; j++)
-				player.addToDeck(estateDeck.remove(0));
-			player.shuffleDeck();
+//			for (j = 0; j < 7; j++)
+//				player.addToDeck(copperDeck.remove(0));
+//			for (j = 0; j < 3; j++)
+//				player.addToDeck(estateDeck.remove(0));
+//			player.shuffleDeck();
+			for (j = 0; j < 10; j++)
+				player.addToDeck(new Bandit());
 			for (j = 0; j < 5; j++)
 				player.addToHand(player.getDeck().remove(0));
 		}
+	}
+	
+	public int checkDeckSize(Card typeOfDeck) {
+		if(typeOfDeck instanceof Copper)
+			return this.getCopperDeck().size();
+		if(typeOfDeck instanceof Silver)
+			return this.getSilverDeck().size();
+		if(typeOfDeck instanceof Gold)
+			return this.getGoldDeck().size();
+		if(typeOfDeck instanceof Estate)
+			return this.getEstateDeck().size();
+		if(typeOfDeck instanceof Duchy)
+			return this.getDuchyDeck().size();
+		if(typeOfDeck instanceof Province)
+			return this.getProvinceDeck().size();
+		if(kingdomDecks.get(0).get(0).getClass().isInstance(typeOfDeck))
+			return kingdomDecks.get(0).size();
+		if(kingdomDecks.get(1).get(0).getClass().isInstance(typeOfDeck))
+			return kingdomDecks.get(1).size();
+		if(kingdomDecks.get(2).get(0).getClass().isInstance(typeOfDeck))
+			return kingdomDecks.get(2).size();
+		if(kingdomDecks.get(3).get(0).getClass().isInstance(typeOfDeck))
+			return kingdomDecks.get(3).size();
+		if(kingdomDecks.get(4).get(0).getClass().isInstance(typeOfDeck))
+			return kingdomDecks.get(4).size();
+		if(kingdomDecks.get(5).get(0).getClass().isInstance(typeOfDeck))
+			return kingdomDecks.get(5).size();
+		if(kingdomDecks.get(6).get(0).getClass().isInstance(typeOfDeck))
+			return kingdomDecks.get(6).size();
+		if(kingdomDecks.get(7).get(0).getClass().isInstance(typeOfDeck))
+			return kingdomDecks.get(7).size();
+		if(kingdomDecks.get(8).get(0).getClass().isInstance(typeOfDeck))
+			return kingdomDecks.get(8).size();
+		if(kingdomDecks.get(9).get(0).getClass().isInstance(typeOfDeck))
+			return kingdomDecks.get(9).size();
+		return 0;
 	}
 
 	public List<Card> getAllCardsThatCanBeBoughtWithAmountOfCoins(int amount) throws InstantiationException, IllegalAccessException {
@@ -141,23 +180,60 @@ public class Table {
 			cards.add(new Province());
 		if(amount >= kingdomDecks.get(0).get(0).getCost() && kingdomDecks.get(0).size() > 0)
 			cards.add(kingdomDecks.get(0).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(1).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+		if(amount >= kingdomDecks.get(1).get(0).getCost() && kingdomDecks.get(1).size() > 0)
 			cards.add(kingdomDecks.get(1).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(2).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+		if(amount >= kingdomDecks.get(2).get(0).getCost() && kingdomDecks.get(2).size() > 0)
 			cards.add(kingdomDecks.get(2).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(3).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+		if(amount >= kingdomDecks.get(3).get(0).getCost() && kingdomDecks.get(3).size() > 0)
 			cards.add(kingdomDecks.get(3).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(4).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+		if(amount >= kingdomDecks.get(4).get(0).getCost() && kingdomDecks.get(4).size() > 0)
 			cards.add(kingdomDecks.get(4).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(5).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+		if(amount >= kingdomDecks.get(5).get(0).getCost() && kingdomDecks.get(5).size() > 0)
 			cards.add(kingdomDecks.get(5).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(6).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+		if(amount >= kingdomDecks.get(6).get(0).getCost() && kingdomDecks.get(6).size() > 0)
 			cards.add(kingdomDecks.get(6).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(7).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+		if(amount >= kingdomDecks.get(7).get(0).getCost() && kingdomDecks.get(7).size() > 0)
 			cards.add(kingdomDecks.get(7).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(8).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+		if(amount >= kingdomDecks.get(8).get(0).getCost() && kingdomDecks.get(8).size() > 0)
 			cards.add(kingdomDecks.get(8).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(9).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+		if(amount >= kingdomDecks.get(9).get(0).getCost() && kingdomDecks.get(9).size() > 0)
+			cards.add(kingdomDecks.get(9).get(0).getClass().newInstance());
+		return cards;
+	}
+	
+	public List<Card> getAllCardsThatCanBeGainedUpToAmount(int amount) throws InstantiationException, IllegalAccessException {
+		List<Card> cards = new ArrayList<Card>();
+		if(amount <= new Copper().getCost() && this.getCopperDeck().size() > 0)
+			cards.add(new Copper());
+		if(amount <= new Silver().getCost() && this.getSilverDeck().size() > 0)
+			cards.add(new Silver());
+		if(amount <= new Gold().getCost() && this.getGoldDeck().size() > 0)
+			cards.add(new Gold());
+		if(amount <= new Estate().getCost() && this.getEstateDeck().size() > 0)
+			cards.add(new Estate());
+		if(amount <= new Duchy().getCost() && this.getDuchyDeck().size() > 0)
+			cards.add(new Duchy());
+		if(amount <= new Province().getCost() && this.getProvinceDeck().size() > 0)
+			cards.add(new Province());
+		if(amount <= kingdomDecks.get(0).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+			cards.add(kingdomDecks.get(0).get(0).getClass().newInstance());
+		if(amount <= kingdomDecks.get(1).get(0).getCost() && kingdomDecks.get(1).size() > 0)
+			cards.add(kingdomDecks.get(1).get(0).getClass().newInstance());
+		if(amount <= kingdomDecks.get(2).get(0).getCost() && kingdomDecks.get(2).size() > 0)
+			cards.add(kingdomDecks.get(2).get(0).getClass().newInstance());
+		if(amount <= kingdomDecks.get(3).get(0).getCost() && kingdomDecks.get(3).size() > 0)
+			cards.add(kingdomDecks.get(3).get(0).getClass().newInstance());
+		if(amount <= kingdomDecks.get(4).get(0).getCost() && kingdomDecks.get(4).size() > 0)
+			cards.add(kingdomDecks.get(4).get(0).getClass().newInstance());
+		if(amount <= kingdomDecks.get(5).get(0).getCost() && kingdomDecks.get(5).size() > 0)
+			cards.add(kingdomDecks.get(5).get(0).getClass().newInstance());
+		if(amount <= kingdomDecks.get(6).get(0).getCost() && kingdomDecks.get(6).size() > 0)
+			cards.add(kingdomDecks.get(6).get(0).getClass().newInstance());
+		if(amount <= kingdomDecks.get(7).get(0).getCost() && kingdomDecks.get(7).size() > 0)
+			cards.add(kingdomDecks.get(7).get(0).getClass().newInstance());
+		if(amount <= kingdomDecks.get(8).get(0).getCost() && kingdomDecks.get(8).size() > 0)
+			cards.add(kingdomDecks.get(8).get(0).getClass().newInstance());
+		if(amount <= kingdomDecks.get(9).get(0).getCost() && kingdomDecks.get(9).size() > 0)
 			cards.add(kingdomDecks.get(9).get(0).getClass().newInstance());
 		return cards;
 	}
