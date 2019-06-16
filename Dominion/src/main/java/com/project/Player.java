@@ -238,6 +238,10 @@ public class Player implements Comparable<Player>{
 		return getUsername() + " ("+getVictoryPoint()+")";
 	}
 	
+	public String playerInfo() {
+		return getUsername() + " hand: " + getHand() + "\ndeck size: " + getDeck().size() + "\ndiscard size: "+getDiscard().size();
+	}
+	
 	public Copper getCopperCard(Table table) {
 		if (table.getCopperDeck().size() > 0 && this.virtualCoins >= new Copper().getCost())
 			return table.getCopperDeck().remove(0);

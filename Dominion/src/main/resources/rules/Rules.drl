@@ -44,7 +44,7 @@ function void draw(Player p, int amount) {
 		for(int j = 0; j < amount-deckSize; j++) 
 			p.addToHand(p.getDeck().remove(0));
 	} else 
-		for(int j = 0; j < 5; j++) 
+		for(int j = 0; j < amount; j++) 
 		p.addToHand(p.getDeck().remove(0));
 	System.out.println(p.getUsername() + " drew " + amount + " cards.");
 }
@@ -165,12 +165,13 @@ rule "Action Phase Rule"
 		
 	then
 		System.out.println(actualPlayer.getUsername() + " entered ACTION phase rule");
+		System.out.println(actualPlayer.playerInfo());
 		if(actualPlayer.getActions() > 0) {
 			Card kingdomCardToPlay = actualPlayer.getPlayableKingdomCardFromHand();
 			if(kingdomCardToPlay != null)
 				System.out.println(actualPlayer.getUsername() + " choses to play: " + kingdomCardToPlay.getName());
 			else
-				System.out.println(actualPlayer.getUsername() + " has no Kingdom cards in hand");
+				System.out.println(actualPlayer.getUsername() + " has no Action cards in hand");
 			if(kingdomCardToPlay != null) {
 				insert(Action.USE);
 				insert(kingdomCardToPlay);
@@ -359,17 +360,27 @@ rule "Play all treasures in hand"
 	then
 		System.out.println(actualPlayer.getUsername() + " is now on purchase phase");
 		System.out.println(actualPlayer.getUsername() + " will now play all treasures in hand");
+		int playedTreasures = 0;
 		for(Iterator<Card> it = actualPlayer.getHand().iterator(); it.hasNext(); ) {
 			Card c = it.next();
 			//If the card is a treasure, play it
 			if(c instanceof Treasure) {
+				playedTreasures++;
 				insert(c);
 				insert(Action.USE);
+				actualPlayer.getDiscard().add(c);
 				it.remove();
 			}
 		}
 		retract($action);
-		insert(Action.COINSNEEDTOBEGARBAGED);
+		if(playedTreasures > 0) {
+			insert(Action.COINSNEEDTOBEGARBAGED);
+		} else {
+		//No coins played, simulate it through tokens
+			insert(Action.USE);
+			insert(Action.COINSNEEDTOBEGARBAGED);
+			insert(Action.ALLCOINSPLAYED);
+		}
 		
 		
 end
@@ -477,9 +488,9 @@ end
 rule "Play Artisan card"
 	when
 		$player : Player( $username : username )
-		$table : Table(  )
 		$card : Artisan(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		Card cardToGain = null;
 		System.out.println($username+" used "+$card.getName()+".");
@@ -500,6 +511,9 @@ rule "Play Artisan card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 //Reveal cards from your deck until you reveal 2 treasure cards.
@@ -534,6 +548,9 @@ rule "Play Adventurer card"
 		}
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 //Gain a Gold.
@@ -546,6 +563,7 @@ rule "Play Bandit card"
 		$opponents : List(  ) from collect ( Player( this != $player ) from players )
 		$card : Bandit(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		
@@ -590,6 +608,9 @@ rule "Play Bandit card"
 		retract($opponents)
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 
@@ -657,6 +678,9 @@ rule "Play Bureaucrat card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 
@@ -682,6 +706,9 @@ rule "Play Cellar card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 // +2 Coins
@@ -701,6 +728,9 @@ rule "Play Chancellor card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 
@@ -726,6 +756,9 @@ rule "Play Chapel card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 // +4 cards
@@ -750,6 +783,9 @@ rule "Play Councilroom card"
 		retract($opponents)
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 //Trash this card.
@@ -773,6 +809,9 @@ rule "Play Feast card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 // +2 actions
@@ -792,6 +831,9 @@ rule "Play Festival card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 // Worth 1 victory per 10 cards you have
@@ -833,6 +875,9 @@ rule "Play Harbinger card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 // +2 cards
@@ -850,6 +895,9 @@ rule "Play Laboratory card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 //Draw until you have 7 cards in hand, skipping
@@ -880,6 +928,9 @@ rule "Play Library card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 
@@ -902,6 +953,9 @@ rule "Play Market card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 
@@ -977,6 +1031,9 @@ rule "Play Mine card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 //+1 card
@@ -988,6 +1045,7 @@ rule "Play Merchant card"
 		$player : Player( $username : username )
 		$card : Merchant(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		draw($player,1);
@@ -997,6 +1055,9 @@ rule "Play Merchant card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 
@@ -1010,7 +1071,7 @@ rule "Play Militia card"
 	when
 		$player : Player( $username : username )
 		$opponents : List(  ) from collect ( Player( this != $player ) from players )
-		$card : Market(  )
+		$card : Militia(  )
 		$action : Action( this == Action.USE )
 		$phase : Phase( this == Phase.ACTION )
 	then
@@ -1039,6 +1100,9 @@ rule "Play Militia card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 //Gain a card costing up to 4
@@ -1065,6 +1129,9 @@ rule "Play Workshop card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 // + 2 Cards
@@ -1086,6 +1153,9 @@ rule "Play Moat card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 
@@ -1120,6 +1190,9 @@ rule "Play Moneylender card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 
@@ -1144,6 +1217,9 @@ rule "Play Poacher card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 //Trash a card from your hand.
@@ -1153,7 +1229,7 @@ rule "Play Remodel card"
 	when
 		$player : Player( $username : username )
 		$card : Remodel(  )
-		$action : Action( this == Action.BUY )
+		$action : Action( this == Action.USE )
 		$phase : Phase( this == Phase.ACTION )
 	then
 		
@@ -1176,6 +1252,9 @@ rule "Play Remodel card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 //+1 Card
@@ -1220,6 +1299,9 @@ rule "Play Sentry card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 
@@ -1236,6 +1318,9 @@ rule "Play Smithy card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 
@@ -1296,6 +1381,9 @@ rule "Play Spy card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 //Each other player reveals the top 2 card of his deck.
@@ -1374,6 +1462,9 @@ rule "Play Thief card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 //You may play and Action card from 
@@ -1404,6 +1495,9 @@ rule "Play Throne room card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 
@@ -1434,6 +1528,9 @@ rule "Play Vassal card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 
@@ -1452,6 +1549,9 @@ rule "Play Village card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 // +2 cards
@@ -1494,6 +1594,9 @@ rule "Play Witch card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 
@@ -1503,7 +1606,7 @@ rule "Play Woodcutter card"
 	when
 		$player : Player( $username : username )
 		$card : Woodcutter (  )
-		$action : Action( this == Action.BUY )
+		$action : Action( this == Action.USE )
 		$phase : Phase( this == Phase.ACTION )
 	then
 		addPurchase($player,1);
@@ -1511,6 +1614,9 @@ rule "Play Woodcutter card"
 		
 		retract($card)
 		retract($action)
+		//To refresh the firing of Action phase rule
+		retract($phase)
+		insert(Phase.ACTION);
 end
 
 
