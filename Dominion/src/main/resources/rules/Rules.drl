@@ -143,6 +143,8 @@ rule "Switch Turn"
 		
 		retract($action);
 		insert(Phase.ACTION);
+		//Retract and insert combo is used to make the next rule fire
+		//since update is not working
 		retract(actualPlayer);
 		insert(actualPlayer);
 end
@@ -162,11 +164,11 @@ rule "Action Phase Rule"
 		actualPlayer : Player(  )
 		
 	then
-		System.out.println(actualPlayer.getUsername() + " entered in ACTION phase rule");
+		System.out.println(actualPlayer.getUsername() + " entered ACTION phase rule");
 		if(actualPlayer.getActions() > 0) {
 			Card kingdomCardToPlay = actualPlayer.getPlayableKingdomCardFromHand();
 			if(kingdomCardToPlay != null)
-				System.out.println("Card chosen, card is: " + kingdomCardToPlay);
+				System.out.println(actualPlayer.getUsername() + " choses to play: " + kingdomCardToPlay.getName());
 			else
 				System.out.println(actualPlayer.getUsername() + " has no Kingdom cards in hand");
 			if(kingdomCardToPlay != null) {
@@ -182,6 +184,7 @@ rule "Action Phase Rule"
 				insert(Action.PLAYALLCOINS);
 			}
 		} else {
+			System.out.println(actualPlayer.getUsername() + " has no more actions left, action phase terminates");
 			retract($phase);
 			insert(Phase.PURCHASE);
 			insert(Action.PLAYALLCOINS);
@@ -308,18 +311,24 @@ end
 */
 
 rule "Remove all coins played"
-	salience 13
+	salience 12
 	when
 		$phase : Phase( this == Phase.PURCHASE )
 		$coins : Treasure(  )
+		//non posso usare questo perche la action.USE non me la toglie
+		//nessuno dopo che ho giocato i coin
+		//not Action( this == Action.USE )
+		$action2 : Action( this == Action.USE )
 		$action : Action( this == Action.COINSNEEDTOBEGARBAGED )
 		
 	then
-		System.out.println("garbage collecting all the coins ... " + $coins);
+		System.out.println("garbage collecting all the coins ... " + $coins.getName());
 		retract($coins);
-		retract($action);
+		//retract($action);
+		
 		//Need to reinsert because it needs to fire the rule again
-		insert(Action.COINSNEEDTOBEGARBAGED);
+		//insert(Action.COINSNEEDTOBEGARBAGED);
+		//retract(Action.ALLCOINSPLAYED);
 		insert(Action.ALLCOINSPLAYED);
 		
 		
@@ -338,6 +347,7 @@ rule "Buy a general card"
 		
 		retract($card);
 		//Need to fire again the purchase phase rule
+		retract(Action.ALLCOINSPLAYED);
 		insert(Action.ALLCOINSPLAYED);
 end
 
@@ -369,12 +379,16 @@ rule "Purchase Phase rule"
 	when 
 		$phase : Phase( this == Phase.PURCHASE )
 		actualPlayer : Player(  )
+		//this must be removed at the end
+		$action3 : Action( this == Action.USE )
+		//this must be removed at the end, we keep it just to make this rule fire
+		$action2 : Action( this == Action.COINSNEEDTOBEGARBAGED )
 		$action : Action( this == Action.ALLCOINSPLAYED )
 	then
 		//Retract all coins played otherwise player will buy one of them
 		//retract($card);
 		
-		System.out.println(actualPlayer.getUsername() + " passed to PURCHASE phase");
+		System.out.println(actualPlayer.getUsername() + " passed to ACTUAL PURCHASE phase");
 		Card cardToBuy = null;
 		
 		if(actualPlayer.getPurchases() > 0) {
@@ -404,6 +418,8 @@ rule "Purchase Phase rule"
 			System.out.println(actualPlayer.getUsername() + " has no more purchases or no treasures to play");
 			retract($phase);
 			retract($action);
+			retract($action2);
+			retract($action3);
 			insert(Phase.CLEANUP);
 		}
 end
