@@ -204,20 +204,67 @@ end
   |___|  |___|  |_||_______||__| |__||_______||_______||___|  |_||_______||_______|
 */
 
-/*
-rule "Play Treasures card"
+//WE need these rules because of the merchant card
+
+rule "Play Copper card"
 	when
 		$player : Player( $username : username )
-		$card : Treasure( $amount : value )
+		$card : Copper( $amount : value )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.PURCHASE )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		coin($player,$amount);
-		retract($player)
+		
 		retract($card)
 		retract($action)
 end
-*/
+
+rule "Normal Play Silver card"
+	when
+		$player : Player( $username : username )
+		$card : Silver( $amount : value )
+		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.PURCHASE )
+		not Action( this == Action.PENDINGSILVER )
+	then
+		System.out.println($username+" used "+$card.getName()+".");
+		coin($player,$amount);
+		
+		retract($card)
+		retract($action)
+end
+
+rule "Play Silver card after merchant"
+	when
+		$player : Player( $username : username )
+		$card : Silver( $amount : value )
+		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.PURCHASE )
+		$token : Action( this == Action.PENDINGSILVER )
+	then
+		System.out.println($username+" used "+$card.getName()+".");
+		coin($player,$amount);
+		coin($player,1);
+		
+		retract($card)
+		retract($action)
+		retract($token)
+end
+
+rule "Play Gold card"
+	when
+		$player : Player( $username : username )
+		$card : Gold( $amount : value )
+		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.PURCHASE )
+	then
+		System.out.println($username+" used "+$card.getName()+".");
+		coin($player,$amount);
+		
+		retract($card)
+		retract($action)
+end
 
 
 /*
@@ -274,7 +321,18 @@ rule "Purchase Phase rule"
 		System.out.println(actualPlayer.getUsername() + " passed to PURCHASE phase");
 		Card cardToBuy = null;
 		if(actualPlayer.getPurchases() > 0) {
-			actualPlayer.playAllTreasureCardsInHand();
+			//actualPlayer.playAllTreasureCardsInHand();
+			//Because of the merchant card, we need to play treasures
+			//inside drools instead of getting all of them played in player
+			for(Iterator<Card> it = actualPlayer.getHand().iterator(); it.hasNext(); ) {
+				Card c = it.next();
+				//If the card is a treasure, play it
+				if(c instanceof Treasure) {
+					insert(c);
+					insert(Action.USE);
+					it.remove();
+				}
+			}
 			//Choose a card to buy randomly from the 7 data structures holding decks in table
 			List<Card> ca = table.getAllCardsThatCanBeBoughtWithAmountOfCoins(actualPlayer.getVirtualCoins());
 			int randomInt = gameLogic.nextInt(ca.size());
@@ -335,20 +393,6 @@ end
 |___| |_||___| |_|  |__||_______||______| |_______||_|   |_|
 */
 
-/*
-rule "Play Witch card"
-	when
-		$player : Player( $username : username )
-		$opponents : List(  )
-		$card : Witch(  )
-		$action : Action( this == Action.USE )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
-*/
 
 
 /*
@@ -488,6 +532,7 @@ rule "Play Bureaucrat card"
 		$opponents : List(  ) from collect ( Player( this != $player ) from players )
 		$card : Bureaucrat()
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		//It is a gainer which lets you gain Silver cards without buying them, 
@@ -500,17 +545,45 @@ rule "Play Bureaucrat card"
 		//while(p.
 		//}
 		// gain a silver onto your deck
+		
+		//If an opponent has a reaction card it is not affected by the attack
+		for(Iterator<Player> it = $opponents.iterator(); it.hasNext();) {
+			Player opp = it.next();
+			for(Card c : opp.getHand()) {
+				if(c instanceof Kingdom && c.getSubtype().equals("Reaction")) {
+					System.out.println(opp.getUsername() + " reveals " + c.getName() + " and is not affected by Bandit");
+					it.remove();
+					break;
+				}
+			}
+		}
+		
 		gainOntoDeck(table,$player,new Silver());
 		
 		for(Player opp : ((List<Player>)$opponents)) {
-			int cardToPutOntoDeck = 0;
-			if(opp.getHand().indexOf(new Estate()) > 0) {
-				cardToPutOntoDeck = opp.getHand().indexOf(new Estate());
-				System.out.println(opp.getUsername() + " reveals " + new Estate().getName());
+			Card cardToPutOntoDeck = null; int i = 0;
+			for(; i < opp.getHand().size(); i++) {
+				if(opp.getHand().get(i) instanceof Victory) {
+					//Reveals a victory card from their hand
+					System.out.println(opp.getUsername() + " reveals " + opp.getHand().get(i).getName());
+					cardToPutOntoDeck = opp.getHand().get(i);
+					break;
+				}
+			}
+			if(i != 0) {
+				//after revealing puts into onto their deck
+				opp.getHand().remove(i);
+				opp.getDeck().add(0,cardToPutOntoDeck);
+			} else {
+				//If no victory cards are present reveals the entire hand
+				for(int j = 0; j < opp.getHand().size(); j++) {
 				
+					System.out.println(opp.getUsername() + " reveals " + opp.getHand().get(j).getName());
+				}
 			}
 			
 		}
+		
 		retract($card)
 		retract($action)
 end
@@ -525,8 +598,10 @@ rule "Play Cellar card"
 		$player : Player( $username : username )
 		$card : Cellar( )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
+		addActions($player,1);
 		//Choose a number between 0 and #CardInHand
 		int randomNumberOfCard = gameLogic.nextInt($player.getHand().size());
 		//Discard #randomNumberOfCard
@@ -534,7 +609,6 @@ rule "Play Cellar card"
 		//Draw #randomNumberOfCard
 		draw($player,randomNumberOfCard);
 		
-		retract($player)
 		retract($card)
 		retract($action)
 end
@@ -546,11 +620,14 @@ rule "Play Chancellor card"
 		$player : Player( $username : username )
 		$card : Chancellor(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		coin($player,2);
 		// you have to put your deck onto your discard pile
-		retract($player)
+		$player.getDiscard().addAll($player.getDeck());
+		$player.getDeck().clear();
+		
 		retract($card)
 		retract($action)
 end
@@ -560,13 +637,22 @@ end
 rule "Play Chapel card"
 	when
 		$player : Player( $username : username )
-		$card : Chapel( $amount : amount )
+		$card : Chapel(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		
 		System.out.println($username+" used "+$card.getName()+".");
-		// trash cards here
-		retract($player)
+		// trash cards here, up to 4 from the hand
+		int amount = gameLogic.nextInt(4);
+		System.out.println($username + " will trash " + amount + " cards");
+		Collections.shuffle($player.getHand());
+		for(int i = 0; i < amount; i++) {
+			Card c = $player.getHand().get(i);
+			$player.getHand().remove(i);
+			trashPile.add(c);
+		}
+		
 		retract($card)
 		retract($action)
 end
@@ -574,17 +660,23 @@ end
 // +4 cards
 // +1 buy
 // each other player draws a card
-rule "Play Council room card"
+rule "Play Councilroom card"
 	when
 		$player : Player( $username : username )
+		$opponents : List(  ) from collect ( Player( this != $player ) from players )
 		$card : Councilroom(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		draw($player,4);
 		addPurchase($player,1);
 		// each other player draws a card
-		retract($player)
+		for(Player opp : ((List<Player>)$opponents)) {
+			draw(opp,1);
+		}
+		
+		retract($opponents)
 		retract($card)
 		retract($action)
 end
@@ -596,14 +688,18 @@ rule "Play Feast card"
 		$player : Player( $username : username )
 		$card : Feast(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
-		// trash this card 
-		// gain a card costing up to 5 
 		System.out.println($username+" used "+$card.getName()+".");
-		addActions($player,2);
-		addPurchase($player,1);
-		coin($player,2);
-		retract($player)
+		// trash this card
+		$player.getHand().remove($card);
+		trashPile.add($card);
+		// gain a card costing up to 5
+		List<Card> ca = table.getAllCardsThatCanBeGainedUpToAmount(5);
+		Card cardToGainIntoDiscardPile = ca.get(gameLogic.nextInt(ca.size()));
+		gainIntoDiscardPile(table,$player,cardToGainIntoDiscardPile);
+		
+		
 		retract($card)
 		retract($action)
 end
@@ -616,18 +712,20 @@ rule "Play Festival card"
 		$player : Player( $username : username )
 		$card : Festival(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		draw($player,1);
 		addPurchase($player,1);
 		coin($player,2);
-		retract($player)
+		
 		retract($card)
 		retract($action)
 end
 
 // Worth 1 victory per 10 cards you have
 // (round down)
+/* GARDENS CARD WILL NOT BE PLAYED BECAUSE IS A VICTORY CARD
 rule "Play Gardens card"
 	when
 		$player : Player( $username : username )
@@ -635,24 +733,6 @@ rule "Play Gardens card"
 		$action : Action( this == Action.USE )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
-		retract($player)
-		retract($card)
-		retract($action)
-end
-
-/*
-rule "Play Harbinger card"
-	when
-		$player : Player( $username : username )
-		$card : Harbinger(  )
-		$action : Action( this == Action.USE )
-	then
-		System.out.println($username+" used Harbinger.");
-		draw($player,1);
-		addActions($player,1);
-		if(gameLogic.nextBoolean()) {
-			addFromDiscardPile($player,1);
-		}
 		retract($player)
 		retract($card)
 		retract($action)
@@ -668,13 +748,18 @@ rule "Play Harbinger card"
 		$player : Player( $username : username )
 		$card : Harbinger(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		draw($player,1);
 		addActions($player,1);
 		// look through your discrda pile 
-		// you may put a card from it into your deck
-		retract($player)
+		int p = gameLogic.nextInt($player.getDiscard().size());
+		Card pickFromDiscardPileAndPutOntoDeck = $player.getDiscard().get(p);
+		// you may put a card from it onto your deck
+		$player.getDiscard().remove(p);
+		$player.getDeck().add(0,pickFromDiscardPileAndPutOntoDeck);
+		
 		retract($card)
 		retract($action)
 end
@@ -686,11 +771,12 @@ rule "Play Laboratory card"
 		$player : Player( $username : username )
 		$card : Laboratory(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		draw($player,2);
 		addActions($player,1);
-		retract($player)
+		
 		retract($card)
 		retract($action)
 end
@@ -703,16 +789,24 @@ rule "Play Library card"
 		$player : Player( $username : username )
 		$card : Library(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		// draw until you have 7 cards in hand,
-		int lastHandSize = $player.getHand().size();
-		System.out.println($username+" used "+$card.getName()+".");
-		draw($player,Math.max(7,Math.abs(7-$player.getHand().size())));
+		//if you draw an action card you can either choose to discard
+		//it or keep it. do this until you have 7 cards in hand
+		while($player.getHand().size() < 7) {
+			draw($player,1);
+			boolean discardIt = gameLogic.nextBoolean();
+			if($player.getHand().get($player.getHand().size()-1) instanceof Kingdom && discardIt) {
+				$player.getDiscard().add($player.getHand().get($player.getHand().size()-1));
+				$player.getHand().remove($player.getHand().size()-1);
+			}
+		}
 		// skipping any Action cards you choose to
 		// set them aside and discard them afterwards
 		//draw($player,?);
-		retract($player)
+		
 		retract($card)
 		retract($action)
 end
@@ -727,13 +821,14 @@ rule "Play Market card"
 		$player : Player( $username : username )
 		$card : Market(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		draw($player,1);
 		addActions($player,1);
 		addPurchase($player,1);
 		coin($player,1);
-		retract($player)
+		
 		retract($card)
 		retract($action)
 end
@@ -747,43 +842,68 @@ rule "Play Mine card"
 		$player : Player( $username : username )
 		$card : Mine(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		
 		//Selection of the Treasure
-		Treasure selectedTreasuresToTrash = null;
+		Treasure selectedTreasureToTrash = null;
 		for(Card card : $player.getHand()){
 			if(card instanceof Treasure){
-				selectedTreasuresToTrash = (Treasure) card;
+				selectedTreasureToTrash = (Treasure) card;
 				break;
 			}
 		}
 		
-		//If I have a treasure
-		if(selectedTreasuresToTrash != null)
+		//If I have selected a treasure from the hand
+		if(selectedTreasureToTrash != null)
 		{
 			//trash the selectedTreasures
-			trashPile.add(selectedTreasuresToTrash);
-			$player.getHand().remove(selectedTreasuresToTrash);
+			trashPile.add(selectedTreasureToTrash);
+			$player.getHand().remove(selectedTreasureToTrash);
 						
 			//If there are Gold card in the gold deck and the selectedTreasuresToTrash 
 			// is not a copper I can gain a Gold deck
-			if(	!table.getGoldDeck().isEmpty() && 
-				!(selectedTreasuresToTrash instanceof Copper)){
-				$player.getHand().add(table.getGoldDeck().remove(0));
-			} else {
-				//Try to gain a silver else a cooper
-				try{
-					$player.getHand().add(table.getSilverDeck().remove(0));
-				}catch(Exception e){
-					$player.getHand().add(table.getCopperDeck().remove(0));
+			//If i trash a copper, i can gain another treasure that costs
+			//up to three, meaning I can only gain a Silver
+			//The same way, if I trash a Silver, I can gain a Gold
+			if(selectedTreasureToTrash instanceof Copper) {
+				if(table.getSilverDeck().size() > 0) {
+					$player.getHand().add(new Silver());
+					table.decreaseDeckSize(new Silver());
+				}
+			} else if(selectedTreasureToTrash instanceof Silver) {
+				if(table.getGoldDeck().size() > 0) {
+					$player.getHand().add(new Gold());
+					table.decreaseDeckSize(new Gold());
+				}
+			//If the random AI discards a gold treasure, we make it
+			//pick again
+			} else if(selectedTreasureToTrash instanceof Gold) {
+				if(table.getGoldDeck().size() > 0) {
+					$player.getHand().add(new Gold());
+					table.decreaseDeckSize(new Gold());
 				}
 			}
+			
+			// CORRADO IO TI VOGLIO BENE MA QUESTO PEZZO DI
+			//CODICE LO TROVO MOLTO INTRICATO
+			//if(	!table.getGoldDeck().isEmpty() && 
+			//	!(selectedTreasuresToTrash instanceof Copper)){
+			//	$player.getHand().add(table.getGoldDeck().remove(0));
+			//} else {
+			//	//Try to gain a silver else a cooper
+			//	try{
+			//		$player.getHand().add(table.getSilverDeck().remove(0));
+			//	}catch(Exception e){
+			//		$player.getHand().add(table.getCopperDeck().remove(0));
+			//	}
+			//}
+			
 		}else{
-			System.out.println($username+" has not treasure in his/her hand.");
+			System.out.println($username+" has no treasure in his/her hand.");
 		}
 		
-		retract($player)
 		retract($card)
 		retract($action)
 end
@@ -802,8 +922,7 @@ rule "Play Merchant card"
 		draw($player,1);
 		addActions($player,1);
 		// the first time you play a Silver this turn 
-		// coin($player,1);
-		retract($player)
+		insert(Action.PENDINGSILVER);
 		
 		retract($card)
 		retract($action)
@@ -819,19 +938,34 @@ end
 rule "Play Militia card"
 	when
 		$player : Player( $username : username )
+		$opponents : List(  ) from collect ( Player( this != $player ) from players )
 		$card : Market(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
-		coin($player,2);
-		for(Object player : players){
-			Player p = (Player)player;
-			if(!p.equals($player)){
-				if(p.getHand().size()>=3){
-					discard(p, 3);
+		
+		//If an opponent has a reaction card it is not affected by the attack
+		for(Iterator<Player> it = $opponents.iterator(); it.hasNext();) {
+			Player opp = it.next();
+			for(Card c : opp.getHand()) {
+				if(c instanceof Kingdom && c.getSubtype().equals("Reaction")) {
+					System.out.println(opp.getUsername() + " reveals " + c.getName() + " and is not affected by Bandit");
+					it.remove();
+					break;
 				}
 			}
 		}
-		retract($player)
+		
+		coin($player,2);
+		for(Object player :  $opponents){
+			Player p = (Player)player;
+			
+			if(p.getHand().size() > 3){
+				discard(p, Math.abs(3-p.getHand().size()));
+			}
+			
+		}
+		
 		retract($card)
 		retract($action)
 end
@@ -845,6 +979,7 @@ rule "Play Workshop card"
 		$player : Player( $username : username )
 		$card : Workshop(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		
@@ -852,11 +987,11 @@ rule "Play Workshop card"
 		List<Card> listOfGainableCard = table.getAllCardsThatCanBeGainedUpToAmount(4);
 		//Choose the card to gain between listOfGainableCard
 		Card selectedCardToGain = listOfGainableCard.get(gameLogic.nextInt(listOfGainableCard.size()));
-		//Add to hand the selected card
-		$player.getHand().add(selectedCardToGain);
+		//Add to discard pile the selected card
+		$player.getDiscard().add(selectedCardToGain);
 		//Remove to deck the selected card
 		table.decreaseDeckSize(selectedCardToGain);
-		retract($player)
+		
 		retract($card)
 		retract($action)
 end
@@ -870,13 +1005,14 @@ rule "Play Moat card"
 		$player : Player( $username : username )
 		$card : Moat(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		draw($player,2);
 		// when amother player plays an Attack card, 
 		// you can reveal it from your hand and 
 		// Attack card doesn't affect you
-		retract($player)
+		
 		retract($card)
 		retract($action)
 end
@@ -888,10 +1024,29 @@ rule "Play Moneylender card"
 		$player : Player( $username : username )
 		$card : Moneylender(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
-		// you may trash a Copper from your hand for 3 
-		retract($player)
+		// you may trash a Copper from your hand for 3 "virtual" coins
+		Treasure selectedCopperToTrash = null;
+		for(Card card : $player.getHand()){
+			if(card instanceof Copper){
+				selectedCopperToTrash = (Treasure) card;
+				break;
+			}
+		}
+		
+		//If I have selected a treasure from the hand
+		if(selectedCopperToTrash != null)
+		{
+			//trash the selectedTreasures
+			trashPile.add(selectedCopperToTrash);
+			$player.getHand().remove(selectedCopperToTrash);
+			coin($player,3);
+		} else {
+			System.out.println($username+" has no copper in his/her hand.");
+		}
+		
 		retract($card)
 		retract($action)
 end
@@ -906,13 +1061,16 @@ rule "Play Poacher card"
 		$player : Player( $username : username )
 		$card : Poacher(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		draw($player,1);
 		addActions($player,1);
 		coin($player,1);
 		// discard a card per empty supply card
-		retract($player)
+		int amount = table.getNumberOfEmptySupplyDeck();
+		discard($player,amount);
+		
 		retract($card)
 		retract($action)
 end
@@ -923,27 +1081,28 @@ end
 rule "Play Remodel card"
 	when
 		$player : Player( $username : username )
-		$card : Chapel(  )
+		$card : Remodel(  )
 		$action : Action( this == Action.BUY )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		
-		if($player.getHand().size() !=0) {
+		if($player.getHand().size() > 0) {
 			int randomNumberOfCard = gameLogic.nextInt($player.getHand().size());
 			//Select a card to trash
 			Card selectedCardToTrash = $player.getHand().remove(randomNumberOfCard);
+			trashPile.add(selectedCardToTrash);
 			//Get all gainable card
 			List<Card> listOfGainableCard = table.getAllCardsThatCanBeGainedUpToAmount(selectedCardToTrash.getCost()+2);
 			//Choose the card to gain between listOfGainableCard
 			Card selectedCardToGain = listOfGainableCard.get(gameLogic.nextInt(listOfGainableCard.size()));
-			//Add to hand the selected card
-			$player.getHand().add(selectedCardToGain);
+			//Add to discard pile the selected card
+			$player.getDiscard().add(selectedCardToGain);
 			//Remove to deck the selected card
 			table.decreaseDeckSize(selectedCardToGain);
 		} else {
 			System.out.println($username+" has not any card in his/her hand.");
 		}
 		
-		retract($player)
 		retract($card)
 		retract($action)
 end
@@ -958,6 +1117,7 @@ rule "Play Sentry card"
 		$player : Player( $username : username )
 		$card : Sentry(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		draw($player,1);
@@ -965,7 +1125,28 @@ rule "Play Sentry card"
 		// look at the top 2 card of your deck 
 		// trash and/ot discard any number of them
 		// put the rest back on top in any order
-		retract($player)
+		List<Card> card0And1FromDeck = new ArrayList<Card>();
+		for(int i = 0; i < 2; i++) {
+			card0And1FromDeck.add($player.getDeck().remove(0));
+		}
+		Collections.reverse(card0And1FromDeck);
+		for(int i = 0; i < 2; i++) {
+			boolean putCardBack = gameLogic.nextBoolean();
+			boolean trashOrDiscard = gameLogic.nextBoolean();
+			if(putCardBack) {
+				$player.getDeck().add(0,card0And1FromDeck.get(i));
+			}else {
+				//If it is true, the player trashes the card
+				if(trashOrDiscard) {
+					trashPile.add(card0And1FromDeck.get(i));
+					//Here you do not remove the card from the tmp list
+					//because you have already removed it from the deck
+				} else {
+					$player.getDiscard().add(card0And1FromDeck.get(i));
+				}
+			}
+		}
+		
 		retract($card)
 		retract($action)
 end
@@ -976,12 +1157,12 @@ rule "Play Smithy card"
 	when
 		$player : Player( $username : username )
 		$card : Smithy(  )
-		// I need the action to understand what the player will do with that card
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		draw($player,3);
-		retract($player)
+		
 		retract($card)
 		retract($action)
 end
@@ -994,15 +1175,54 @@ end
 rule "Play Spy card"
 	when
 		$player : Player( $username : username )
+		$opponents : List(  ) from collect ( Player( this != $player ) from players )
 		$card : Spy(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		draw($player,1);
 		addActions($player,1);
 		// tutti i giocatori rivelare una carta dal proprio deck 
 		// possono decidere se scartarla o rimetterla al proprio posto
-		retract($player)
+		
+		//If an opponent has a reaction card it is not affected by the attack
+		for(Iterator<Player> it = $opponents.iterator(); it.hasNext();) {
+			Player opp = it.next();
+			for(Card c : opp.getHand()) {
+				if(c instanceof Kingdom && c.getSubtype().equals("Reaction")) {
+					System.out.println(opp.getUsername() + " reveals " + c.getName() + " and is not affected by Bandit");
+					it.remove();
+					break;
+				}
+			}
+		}
+		
+		//First the player reveals the top card of the deck, then the
+		//Opponents do the same
+		boolean discardOrPutBack = gameLogic.nextBoolean();
+		Card revealedCard = $player.getDeck().remove(0);
+		System.out.println($username + " reveals " + revealedCard.getName());
+		if(discardOrPutBack) {
+			$player.getDiscard().add(revealedCard);
+		} else {
+			$player.getDeck().add(0,revealedCard);
+		}
+		
+		//Now the opponents will do the same, the one that are affected by
+		//The attack
+		for(Object player : $opponents) {
+			Player opp = (Player)player;
+			boolean oppDiscardOrPutBack = gameLogic.nextBoolean();
+			Card oppRevealedCard = opp.getDeck().remove(0);
+			System.out.println(opp.getUsername() + " reveals " + oppRevealedCard.getName());
+			if(oppDiscardOrPutBack) {
+				opp.getDiscard().add(oppRevealedCard);
+			} else {
+				opp.getDeck().add(0,oppRevealedCard);
+			}
+		}
+		
 		retract($card)
 		retract($action)
 end
@@ -1015,8 +1235,10 @@ end
 rule "Play Thief card"
 	when
 		$player : Player( $username : username )
+		$opponents : List(  ) from collect ( Player( this != $player ) from players )
 		$card : Thief(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		// each other player reveals the top 2 cards of his deck
@@ -1024,7 +1246,21 @@ rule "Play Thief card"
 		// they trash one of them that you choose
 		// you may gain any or all these thrashed cards
 		// they discard the other revealed cards
-		retract($player)
+		
+		//If an opponent has a reaction card it is not affected by the attack
+		for(Iterator<Player> it = $opponents.iterator(); it.hasNext();) {
+			Player opp = it.next();
+			for(Card c : opp.getHand()) {
+				if(c instanceof Kingdom && c.getSubtype().equals("Reaction")) {
+					System.out.println(opp.getUsername() + " reveals " + c.getName() + " and is not affected by Bandit");
+					it.remove();
+					break;
+				}
+			}
+		}
+		
+		
+		
 		retract($card)
 		retract($action)
 end
@@ -1053,13 +1289,23 @@ rule "Play Vassal card"
 		$player : Player( $username : username )
 		$card : Vassal(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		coin($player,2);
 		// discard the top card of your deck
 		// if it's anAction card,
 		// you may play it
-		retract($player)
+		boolean playItOrNot = gameLogic.nextBoolean();
+		
+		Card topCardOfDeck = $player.getDeck().remove(0);
+		if(topCardOfDeck instanceof Kingdom && playItOrNot) {
+			insert(Action.USE);
+			insert(topCardOfDeck);
+		} else {
+			$player.getDiscard().add(topCardOfDeck);
+		}
+		
 		retract($card)
 		retract($action)
 end
@@ -1072,11 +1318,12 @@ rule "Play Village card"
 		$player : Player( $username : username )
 		$card : Village(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		draw($player,1);
 		addActions($player,2);
-		retract($player)
+		
 		retract($card)
 		retract($action)
 end
@@ -1086,13 +1333,39 @@ end
 rule "Play Witch card"
 	when
 		$player : Player( $username : username )
+		$opponents : List(  ) from collect ( Player( this != $player ) from players )
 		$card : Witch(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		draw($player,2);
 		// each other player gains a curse
-		retract($player)
+		
+		//If an opponent has a reaction card it is not affected by the attack
+		for(Iterator<Player> it = $opponents.iterator(); it.hasNext();) {
+			Player opp = it.next();
+			for(Card c : opp.getHand()) {
+				if(c instanceof Kingdom && c.getSubtype().equals("Reaction")) {
+					System.out.println(opp.getUsername() + " reveals " + c.getName() + " and is not affected by Bandit");
+					it.remove();
+					break;
+				}
+			}
+		}
+		
+		Iterator<Player> oppos = $opponents.iterator();
+		//While there are curses to deliver to opponents
+		while(table.checkDeckSize(new Curse()) > 0) {
+			//Give the curse to next opponent
+			if(oppos.hasNext()) {
+				Player op = oppos.next();
+				op.getDiscard().add(new Curse());
+				table.decreaseDeckSize(new Curse());
+			}
+		}
+		//The opponents that are outside this while are the luckiest!
+		
 		retract($card)
 		retract($action)
 end
@@ -1105,10 +1378,11 @@ rule "Play Woodcutter card"
 		$player : Player( $username : username )
 		$card : Woodcutter (  )
 		$action : Action( this == Action.BUY )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		addPurchase($player,1);
 		coin($player,2);
-		retract($player)
+		
 		retract($card)
 		retract($action)
 end

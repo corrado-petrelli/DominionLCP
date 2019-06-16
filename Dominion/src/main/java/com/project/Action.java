@@ -11,5 +11,6 @@ public enum Action {
 	BUY,
 	//Draw a card (without coin!! && not from your deck,
 	//it depends from the effect from the effect of the card)
-	GET
+	GET,
+	PENDINGSILVER
 }

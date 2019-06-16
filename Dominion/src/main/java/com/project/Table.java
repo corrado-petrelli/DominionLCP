@@ -272,6 +272,43 @@ public class Table {
 			kingdomDecks.get(9).remove(0);
 				
 	}
+	
+	public int getNumberOfEmptySupplyDeck() {
+		int emptySupplies = 0;
+		if(this.getCopperDeck().isEmpty())
+			emptySupplies++;
+		if(this.getSilverDeck().isEmpty())
+			emptySupplies++;
+		if(this.getGoldDeck().isEmpty())
+			emptySupplies++;
+		if(this.getEstateDeck().isEmpty())
+			emptySupplies++;
+		if(this.getDuchyDeck().isEmpty())
+			emptySupplies++;
+		if(this.getProvinceDeck().isEmpty())
+			emptySupplies++;
+		if(kingdomDecks.get(0).isEmpty())
+			emptySupplies++;
+		if(kingdomDecks.get(1).isEmpty())
+			emptySupplies++;
+		if(kingdomDecks.get(2).isEmpty())
+			emptySupplies++;
+		if(kingdomDecks.get(3).isEmpty())
+			emptySupplies++;
+		if(kingdomDecks.get(4).isEmpty())
+			emptySupplies++;
+		if(kingdomDecks.get(5).isEmpty())
+			emptySupplies++;
+		if(kingdomDecks.get(6).isEmpty())
+			emptySupplies++;
+		if(kingdomDecks.get(7).isEmpty())
+			emptySupplies++;
+		if(kingdomDecks.get(8).isEmpty())
+			emptySupplies++;
+		if(kingdomDecks.get(9).isEmpty())
+			emptySupplies++;
+		return emptySupplies;
+	}
 
 	public List<Card> getTrashDeck() {
 		return trashDeck;
