@@ -12,5 +12,8 @@ public enum Action {
 	//Draw a card (without coin!! && not from your deck,
 	//it depends from the effect from the effect of the card)
 	GET,
-	PENDINGSILVER
+	PENDINGSILVER,
+	PLAYALLCOINS,
+	ALLCOINSPLAYED,
+	COINSNEEDTOBEGARBAGED
 }

@@ -125,7 +125,7 @@ rule "Switch Turn"
 	when
 		$action : Phase( this == Phase.ENDTURN )
 		actualPlayer : Player(  )
-		not Action(  )
+		
 	then
 		System.out.println(actualPlayer.getUsername() + " ENDED its turn");
 		int indexActualPlayer = players.indexOf(actualPlayer);
@@ -160,7 +160,7 @@ rule "Action Phase Rule"
 	when
 		$phase : Phase( this == Phase.ACTION )
 		actualPlayer : Player(  )
-		not Action(  )
+		
 	then
 		System.out.println(actualPlayer.getUsername() + " entered in ACTION phase rule");
 		if(actualPlayer.getActions() > 0) {
@@ -179,10 +179,12 @@ rule "Action Phase Rule"
 				actualPlayer.setActions(0);
 				retract($phase);
 				insert(Phase.PURCHASE);
+				insert(Action.PLAYALLCOINS);
 			}
 		} else {
 			retract($phase);
 			insert(Phase.PURCHASE);
+			insert(Action.PLAYALLCOINS);
 		}
 end
 
@@ -207,63 +209,71 @@ end
 //WE need these rules because of the merchant card
 
 rule "Play Copper card"
+	salience 13
 	when
 		$player : Player( $username : username )
 		$card : Copper( $amount : value )
 		$action : Action( this == Action.USE )
 		$phase : Phase( this == Phase.PURCHASE )
+		not Action( this == Action.ALLCOINSPLAYED )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		coin($player,$amount);
 		
-		retract($card)
-		retract($action)
+		//retract($card)
+		//retract($action)
 end
 
 rule "Normal Play Silver card"
+	salience 14
 	when
 		$player : Player( $username : username )
 		$card : Silver( $amount : value )
 		$action : Action( this == Action.USE )
 		$phase : Phase( this == Phase.PURCHASE )
 		not Action( this == Action.PENDINGSILVER )
+		not Action( this == Action.ALLCOINSPLAYED )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		coin($player,$amount);
 		
-		retract($card)
-		retract($action)
+		//retract($card)
+		//retract($action)
 end
 
 rule "Play Silver card after merchant"
+	salience 13
 	when
 		$player : Player( $username : username )
 		$card : Silver( $amount : value )
 		$action : Action( this == Action.USE )
 		$phase : Phase( this == Phase.PURCHASE )
 		$token : Action( this == Action.PENDINGSILVER )
+		not Action( this == Action.ALLCOINSPLAYED )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		coin($player,$amount);
 		coin($player,1);
 		
-		retract($card)
-		retract($action)
+		//retract($card)
+		//retract($action)
 		retract($token)
 end
 
 rule "Play Gold card"
+	salience 13
 	when
 		$player : Player( $username : username )
 		$card : Gold( $amount : value )
 		$action : Action( this == Action.USE )
 		$phase : Phase( this == Phase.PURCHASE )
+		not Action( this == Action.ALLCOINSPLAYED )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		coin($player,$amount);
 		
-		retract($card)
-		retract($action)
+		//retract($card)
+		//retract($action)
 end
 
 
@@ -297,7 +307,26 @@ rule "Buy Victories card"
 end
 */
 
+rule "Remove all coins played"
+	salience 13
+	when
+		$phase : Phase( this == Phase.PURCHASE )
+		$coins : Treasure(  )
+		$action : Action( this == Action.COINSNEEDTOBEGARBAGED )
+		
+	then
+		System.out.println("garbage collecting all the coins ... " + $coins);
+		retract($coins);
+		retract($action);
+		//Need to reinsert because it needs to fire the rule again
+		insert(Action.COINSNEEDTOBEGARBAGED);
+		insert(Action.ALLCOINSPLAYED);
+		
+		
+end
+
 rule "Buy a general card"
+	salience 13
 	when
 		$phase : Phase( this == Phase.PURCHASE )
 		actualPlayer : Player(  )
@@ -306,38 +335,60 @@ rule "Buy a general card"
 	then
 		buy(actualPlayer,$card);
 		retract($action);
+		
 		retract($card);
+		//Need to fire again the purchase phase rule
+		insert(Action.ALLCOINSPLAYED);
 end
 
-
+rule "Play all treasures in hand"
+	when
+		$phase : Phase( this == Phase.PURCHASE )
+		actualPlayer : Player(  )
+		$action : Action( this == PLAYALLCOINS )
+	then
+		System.out.println(actualPlayer.getUsername() + " is now on purchase phase");
+		System.out.println(actualPlayer.getUsername() + " will now play all treasures in hand");
+		for(Iterator<Card> it = actualPlayer.getHand().iterator(); it.hasNext(); ) {
+			Card c = it.next();
+			//If the card is a treasure, play it
+			if(c instanceof Treasure) {
+				insert(c);
+				insert(Action.USE);
+				it.remove();
+			}
+		}
+		retract($action);
+		insert(Action.COINSNEEDTOBEGARBAGED);
+		
+		
+end
 
 rule "Purchase Phase rule"
-	salience 15
+	salience 12
 	when 
 		$phase : Phase( this == Phase.PURCHASE )
 		actualPlayer : Player(  )
-		not Action(  )
+		$action : Action( this == Action.ALLCOINSPLAYED )
 	then
+		//Retract all coins played otherwise player will buy one of them
+		//retract($card);
+		
 		System.out.println(actualPlayer.getUsername() + " passed to PURCHASE phase");
 		Card cardToBuy = null;
+		
 		if(actualPlayer.getPurchases() > 0) {
 			//actualPlayer.playAllTreasureCardsInHand();
 			//Because of the merchant card, we need to play treasures
 			//inside drools instead of getting all of them played in player
-			for(Iterator<Card> it = actualPlayer.getHand().iterator(); it.hasNext(); ) {
-				Card c = it.next();
-				//If the card is a treasure, play it
-				if(c instanceof Treasure) {
-					insert(c);
-					insert(Action.USE);
-					it.remove();
-				}
-			}
+			
+			
+			
 			//Choose a card to buy randomly from the 7 data structures holding decks in table
 			List<Card> ca = table.getAllCardsThatCanBeBoughtWithAmountOfCoins(actualPlayer.getVirtualCoins());
 			int randomInt = gameLogic.nextInt(ca.size());
 			cardToBuy = ca.get(randomInt);
-			System.out.println("Chosen card: " + cardToBuy);
+			System.out.println(actualPlayer.getUsername() + " chooses to buy: " + cardToBuy.getName());
 			//If I choose a card
 			if(cardToBuy != null){
 				//I remove the virtual coins of the card
@@ -350,7 +401,9 @@ rule "Purchase Phase rule"
 				
 			}
 		} else {
+			System.out.println(actualPlayer.getUsername() + " has no more purchases or no treasures to play");
 			retract($phase);
+			retract($action);
 			insert(Phase.CLEANUP);
 		}
 end
@@ -359,17 +412,19 @@ rule "Cleanup phase rule"
 	when
 		$phase : Phase( this == Phase.CLEANUP )
 		actualPlayer : Player(  )
-		not Action(  )
+		
 	then
 		System.out.println(actualPlayer.getUsername() + " is now on CLEANUP phase");
 		actualPlayer.getDiscard().addAll(actualPlayer.getHand());
 		System.out.println(actualPlayer.getUsername() + " discarded the hand");
 		actualPlayer.getHand().clear();
+		actualPlayer.setVirtualCoins(0);
 		draw(actualPlayer,5);
 		//Check if end game conditions are satisifed at the end of each turn
 		table.checkEndGame();
 		System.out.println("End game conditions checked");
 		retract($phase);
+		//retract($action);
 		insert(Phase.ENDTURN);
 		
 end
