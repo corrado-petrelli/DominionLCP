@@ -1259,7 +1259,47 @@ rule "Play Thief card"
 			}
 		}
 		
-		
+		for(Object opponent : $opponents) {
+			List<Card> revealedCards = new ArrayList<Card>();
+			Player opp = (Player)opponent;
+			for(int i = 0; i < 2; i++) {
+				Card rc = opp.getDeck().remove(0);
+				revealedCards.add(rc);
+				System.out.println(opp.getUsername() + " reveals " + rc.getName());
+			}
+			//both revealed cards are treasure and I need to choose one to trash (and maybe gain)
+			boolean trashOrTake = gameLogic.nextBoolean();
+			//two treasures are revealed, i select one of the two
+			if(revealedCards.get(0) instanceof Treasure && revealedCards.get(1) instanceof Treasure) {
+				boolean oneOrTwo = gameLogic.nextBoolean();
+				if(oneOrTwo) {
+					Card rtc = revealedCards.remove(0);
+					trashPile.add(rtc);
+					System.out.println($username + " decided to trash " + rtc.getName());
+					//put the other revealed card in discard pile of the opponent
+					opp.getDiscard().add(revealedCards.remove(0));
+				} else {
+					//put the other revealed card in discard pile of the opponent
+					opp.getDiscard().add(revealedCards.remove(0));
+					//DIscard the first and trash the second
+					Card rtc = revealedCards.remove(0);
+					trashPile.add(rtc);
+					System.out.println($username + " decided to trash " + rtc.getName());
+					
+				}
+			//only one treasure is revealed, i trash the only one
+			} else if(revealedCards.get(0) instanceof Treasure || revealedCards.get(1) instanceof Treasure){
+				Card treasure = revealedCards.get(0) instanceof Treasure ? revealedCards.remove(0) : revealedCards.remove(1);
+				trashPile.add(treasure);
+				System.out.println($username + " decided to trash " + treasure.getName());
+			}
+			
+			if(!trashOrTake) {
+				System.out.println($username + " decided to pick trashed card");
+				$player.getDiscard().add((Card)trashPile.remove(trashPile.size()-1));
+			}
+			
+		}
 		
 		retract($card)
 		retract($action)
@@ -1272,10 +1312,25 @@ rule "Play Throne room card"
 		$player : Player( $username : username )
 		$card : Throneroom(  )
 		$action : Action( this == Action.USE )
+		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		// you may play an Action card from your hand twice
-		retract($player)
+		//first select the action from hand
+		Collections.shuffle($player.getHand());
+		for(Card c : $player.getHand()) {
+			if(c instanceof Kingdom) {
+				insert(c);
+				insert(c);
+				insert(Action.USE);
+				insert(Action.USE);
+				$player.getHand().remove(c);
+				$player.getDiscard().add(c);
+				break;
+			}
+		}
+		//then put two times the tokens to activate it
+		
 		retract($card)
 		retract($action)
 end
