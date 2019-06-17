@@ -298,7 +298,7 @@ rule "Remove all coins played"
 		$action : Action( this == Action.COINSNEEDTOBEGARBAGED )
 		
 	then
-		System.out.println("Garbage collecting all the coins ... " + $coins.getName());
+		System.out.println("garbage collecting all the coins ... " + $coins.getName());
 		retract($coins);
 		//retract($action);
 		
@@ -308,8 +308,6 @@ rule "Remove all coins played"
 		//We can't remove the USE token and the COINSNEEDTOBEGARBAGED token
 		//otherwise the rule won't fire for all the coins played before
 		insert(Action.ALLCOINSPLAYED);
-		
-		
 end
 
 rule "Buy a general card"
