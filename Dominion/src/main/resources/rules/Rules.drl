@@ -41,12 +41,13 @@ function void draw(Player p, int amount) {
 		shuffle(p);
 		for(int j = 0; j < amount-deckSize; j++) 
 			p.addToHand(p.getDeck().remove(0));
-	} else 
+		System.out.println(p.getUsername() + " drew " + amount + " cards.");
+	} else {
 		for(int j = 0; j < amount; j++) 
-		p.addToHand(p.getDeck().remove(0));
-	System.out.println(p.getUsername() + " drew " + amount + " cards.");
+			p.addToHand(p.getDeck().remove(0));
+		System.out.println(p.getUsername() + " drew " + amount + " cards.");
+	}
 }
-
 
 function void shuffle(Player p) {
 	Collections.shuffle(p.getDiscard());
@@ -397,8 +398,8 @@ rule "Purchase Phase rule"
 				System.out.println("No cards can be bought, phase skipped");
 				retract($phase);
 				retract($action);
-				retract($action2);
-				retract($action3);
+				retract($prevAction1);
+				retract($prevAction2);
 				insert(Phase.CLEANUP);
 			}
 		} else {
@@ -1423,7 +1424,7 @@ rule "Play Thief card"
 				else {
 					//only one treasure is revealed, i trash the only one
 					
-						System.out.println("ci sono due carte e solo una è tesoro");
+						System.out.println("ci sono due carte e solo una ï¿½ tesoro");
 						treasureFound = true;
 						Card treasure = null;
 						if(revealedCards.get(0) instanceof Treasure)
@@ -1434,7 +1435,7 @@ rule "Play Thief card"
 						System.out.println($username + " decided to trash " + treasure.getName());
 				}
 			} else if(revealedCards.size() == 1) {
-				System.out.println("c'è una sola carta ed è tesoro");
+				System.out.println("c'ï¿½ una sola carta ed ï¿½ tesoro");
 				if(revealedCards.get(0) instanceof Treasure) {
 					
 					treasureFound = true;
