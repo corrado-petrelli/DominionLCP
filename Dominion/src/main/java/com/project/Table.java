@@ -122,6 +122,7 @@ public class Table {
 				player.addToDeck(estateDeck.remove(0));
 			player.shuffleDeck();
 			
+		
 			for (j = 0; j < 5; j++)
 				player.addToHand(player.getDeck().remove(0));
 		}
@@ -177,25 +178,25 @@ public class Table {
 			cards.add(new Duchy());
 		if(amount >= new Province().getCost() && this.getProvinceDeck().size() > 0)
 			cards.add(new Province());
-		if(amount >= kingdomDecks.get(0).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+		if(kingdomDecks.get(0).size() > 0 && amount >= kingdomDecks.get(0).get(0).getCost())
 			cards.add(kingdomDecks.get(0).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(1).get(0).getCost() && kingdomDecks.get(1).size() > 0)
+		if(kingdomDecks.get(1).size() > 0 && amount >= kingdomDecks.get(1).get(0).getCost())
 			cards.add(kingdomDecks.get(1).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(2).get(0).getCost() && kingdomDecks.get(2).size() > 0)
+		if(kingdomDecks.get(2).size() > 0 && amount >= kingdomDecks.get(2).get(0).getCost())
 			cards.add(kingdomDecks.get(2).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(3).get(0).getCost() && kingdomDecks.get(3).size() > 0)
+		if(kingdomDecks.get(3).size() > 0 && amount >= kingdomDecks.get(3).get(0).getCost())
 			cards.add(kingdomDecks.get(3).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(4).get(0).getCost() && kingdomDecks.get(4).size() > 0)
+		if(kingdomDecks.get(4).size() > 0 && amount >= kingdomDecks.get(4).get(0).getCost())
 			cards.add(kingdomDecks.get(4).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(5).get(0).getCost() && kingdomDecks.get(5).size() > 0)
+		if(kingdomDecks.get(5).size() > 0 && amount >= kingdomDecks.get(5).get(0).getCost())
 			cards.add(kingdomDecks.get(5).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(6).get(0).getCost() && kingdomDecks.get(6).size() > 0)
+		if(kingdomDecks.get(6).size() > 0 && amount >= kingdomDecks.get(6).get(0).getCost())
 			cards.add(kingdomDecks.get(6).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(7).get(0).getCost() && kingdomDecks.get(7).size() > 0)
+		if(kingdomDecks.get(7).size() > 0 && amount >= kingdomDecks.get(7).get(0).getCost())
 			cards.add(kingdomDecks.get(7).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(8).get(0).getCost() && kingdomDecks.get(8).size() > 0)
+		if(kingdomDecks.get(8).size() > 0 && amount >= kingdomDecks.get(8).get(0).getCost())
 			cards.add(kingdomDecks.get(8).get(0).getClass().newInstance());
-		if(amount >= kingdomDecks.get(9).get(0).getCost() && kingdomDecks.get(9).size() > 0)
+		if(kingdomDecks.get(9).size() > 0 && amount >= kingdomDecks.get(9).get(0).getCost())
 			cards.add(kingdomDecks.get(9).get(0).getClass().newInstance());
 		return cards;
 	}
@@ -214,25 +215,25 @@ public class Table {
 			cards.add(new Duchy());
 		if(amount <= new Province().getCost() && this.getProvinceDeck().size() > 0)
 			cards.add(new Province());
-		if(amount <= kingdomDecks.get(0).get(0).getCost() && kingdomDecks.get(0).size() > 0)
+		if(kingdomDecks.get(0).size() > 0 && amount <= kingdomDecks.get(0).get(0).getCost())
 			cards.add(kingdomDecks.get(0).get(0).getClass().newInstance());
-		if(amount <= kingdomDecks.get(1).get(0).getCost() && kingdomDecks.get(1).size() > 0)
+		if(kingdomDecks.get(1).size() > 0 && amount <= kingdomDecks.get(1).get(0).getCost())
 			cards.add(kingdomDecks.get(1).get(0).getClass().newInstance());
-		if(amount <= kingdomDecks.get(2).get(0).getCost() && kingdomDecks.get(2).size() > 0)
+		if(kingdomDecks.get(2).size() > 0 && amount <= kingdomDecks.get(2).get(0).getCost())
 			cards.add(kingdomDecks.get(2).get(0).getClass().newInstance());
-		if(amount <= kingdomDecks.get(3).get(0).getCost() && kingdomDecks.get(3).size() > 0)
+		if(kingdomDecks.get(3).size() > 0 && amount <= kingdomDecks.get(3).get(0).getCost())
 			cards.add(kingdomDecks.get(3).get(0).getClass().newInstance());
-		if(amount <= kingdomDecks.get(4).get(0).getCost() && kingdomDecks.get(4).size() > 0)
+		if(kingdomDecks.get(4).size() > 0 && amount <= kingdomDecks.get(4).get(0).getCost())
 			cards.add(kingdomDecks.get(4).get(0).getClass().newInstance());
-		if(amount <= kingdomDecks.get(5).get(0).getCost() && kingdomDecks.get(5).size() > 0)
+		if(kingdomDecks.get(5).size() > 0 && amount <= kingdomDecks.get(5).get(0).getCost())
 			cards.add(kingdomDecks.get(5).get(0).getClass().newInstance());
-		if(amount <= kingdomDecks.get(6).get(0).getCost() && kingdomDecks.get(6).size() > 0)
+		if(kingdomDecks.get(6).size() > 0 && amount <= kingdomDecks.get(6).get(0).getCost())
 			cards.add(kingdomDecks.get(6).get(0).getClass().newInstance());
-		if(amount <= kingdomDecks.get(7).get(0).getCost() && kingdomDecks.get(7).size() > 0)
+		if(kingdomDecks.get(7).size() > 0 && amount <= kingdomDecks.get(7).get(0).getCost())
 			cards.add(kingdomDecks.get(7).get(0).getClass().newInstance());
-		if(amount <= kingdomDecks.get(8).get(0).getCost() && kingdomDecks.get(8).size() > 0)
+		if(kingdomDecks.get(8).size() > 0 && amount <= kingdomDecks.get(8).get(0).getCost())
 			cards.add(kingdomDecks.get(8).get(0).getClass().newInstance());
-		if(amount <= kingdomDecks.get(9).get(0).getCost() && kingdomDecks.get(9).size() > 0)
+		if(kingdomDecks.get(9).size() > 0 && amount <= kingdomDecks.get(9).get(0).getCost())
 			cards.add(kingdomDecks.get(9).get(0).getClass().newInstance());
 		return cards;
 	}
@@ -250,25 +251,25 @@ public class Table {
 			this.getDuchyDeck().remove(0);
 		if(c.getClass().equals(new Province().getClass()) && this.getCopperDeck().size() > 0)
 			this.getProvinceDeck().remove(0);
-		if(c.getClass().equals(kingdomDecks.get(0).get(0).getClass()) && kingdomDecks.get(0).size() > 0)
+		if(kingdomDecks.get(0).size() > 0 && c.getClass().equals(kingdomDecks.get(0).get(0).getClass()))
 			kingdomDecks.get(0).remove(0);
-		if(c.getClass().equals(kingdomDecks.get(1).get(0).getClass()) && kingdomDecks.get(1).size() > 0)
+		if(kingdomDecks.get(1).size() > 0 && c.getClass().equals(kingdomDecks.get(1).get(0).getClass()))
 			kingdomDecks.get(1).remove(0);
-		if(c.getClass().equals(kingdomDecks.get(2).get(0).getClass()) && kingdomDecks.get(2).size() > 0)
+		if(kingdomDecks.get(2).size() > 0 && c.getClass().equals(kingdomDecks.get(2).get(0).getClass()))
 			kingdomDecks.get(2).remove(0);
-		if(c.getClass().equals(kingdomDecks.get(3).get(0).getClass()) && kingdomDecks.get(3).size() > 0)
+		if(kingdomDecks.get(3).size() > 0 && c.getClass().equals(kingdomDecks.get(3).get(0).getClass()))
 			kingdomDecks.get(3).remove(0);
-		if(c.getClass().equals(kingdomDecks.get(4).get(0).getClass()) && kingdomDecks.get(4).size() > 0)
+		if(kingdomDecks.get(4).size() > 0 && c.getClass().equals(kingdomDecks.get(4).get(0).getClass()))
 			kingdomDecks.get(4).remove(0);
-		if(c.getClass().equals(kingdomDecks.get(5).get(0).getClass()) && kingdomDecks.get(5).size() > 0)
+		if(kingdomDecks.get(5).size() > 0 && c.getClass().equals(kingdomDecks.get(5).get(0).getClass()))
 			kingdomDecks.get(5).remove(0);
-		if(c.getClass().equals(kingdomDecks.get(6).get(0).getClass()) && kingdomDecks.get(6).size() > 0)
+		if(kingdomDecks.get(6).size() > 0 && c.getClass().equals(kingdomDecks.get(6).get(0).getClass()))
 			kingdomDecks.get(6).remove(0);
-		if(c.getClass().equals(kingdomDecks.get(7).get(0).getClass()) && kingdomDecks.get(7).size() > 0)
+		if(kingdomDecks.get(7).size() > 0 && c.getClass().equals(kingdomDecks.get(7).get(0).getClass()))
 			kingdomDecks.get(7).remove(0);
-		if(c.getClass().equals(kingdomDecks.get(8).get(0).getClass()) && kingdomDecks.get(8).size() > 0)
+		if(kingdomDecks.get(8).size() > 0 && c.getClass().equals(kingdomDecks.get(8).get(0).getClass()))
 			kingdomDecks.get(8).remove(0);
-		if(c.getClass().equals(kingdomDecks.get(9).get(0).getClass()) && kingdomDecks.get(9).size() > 0)
+		if(kingdomDecks.get(9).size() > 0 && c.getClass().equals(kingdomDecks.get(9).get(0).getClass()))
 			kingdomDecks.get(9).remove(0);
 				
 	}

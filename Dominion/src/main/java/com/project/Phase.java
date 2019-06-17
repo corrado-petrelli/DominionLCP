@@ -8,5 +8,6 @@ public enum Phase {
 	//Clean-up phase
 	CLEANUP,
 	//End turn!
-	ENDTURN
+	ENDTURN,
+	ENDGAME
 }

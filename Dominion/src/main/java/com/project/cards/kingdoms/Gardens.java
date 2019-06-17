@@ -18,7 +18,7 @@ public class Gardens extends Kingdom implements IVictoryCard{
 	public int getVictoryPoint() {
 		int point = DroolsTest.actualPlayer.getDeck().size() % 10;
 		if(DroolsTest.actualPlayer.getDeck().size() >= 10)
-			return point;
+			return (int) Math.ceil(DroolsTest.actualPlayer.getDeck().size() / 10);
 		else
 			return 0;
 	}

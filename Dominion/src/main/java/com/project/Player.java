@@ -159,7 +159,16 @@ public class Player implements Comparable<Player>{
 	
 	public int getVictoryPoint(){
 		int total = 0;
-		for(Card card : hand){
+		if(getDiscard().size() > 0) {
+			deck.addAll(getDiscard());
+			getDiscard().clear();
+		}
+		if(getHand().size() > 0) {
+			deck.addAll(getHand());
+			getHand().clear();
+		}
+		for(Card card : deck){
+			//System.out.println(card.getName());
 			if(card instanceof IVictoryCard)
 				total += ((IVictoryCard) card).getVictoryPoint();
 		}

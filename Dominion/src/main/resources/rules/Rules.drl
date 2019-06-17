@@ -85,7 +85,10 @@ function void beCursed(Player p) {
 function void discard(Player p, int amount) {
 	Random r = new Random();
 	for(int i = 0; i < amount; i++) {
-		p.getHand().remove(r.nextInt(p.getHand().size()));
+		int j = r.nextInt(p.getHand().size());
+		Card c = p.getHand().get(j);
+		p.getHand().remove(j);
+		p.getDiscard().add(c);
 	}
 	System.out.println(p.getUsername() + " discarded " + amount + " cards.");
 }
@@ -411,20 +414,32 @@ rule "Purchase Phase rule"
 			
 			//Choose a card to buy randomly from the 7 data structures holding decks in table
 			List<Card> ca = table.getAllCardsThatCanBeBoughtWithAmountOfCoins(actualPlayer.getVirtualCoins());
-			int randomInt = gameLogic.nextInt(ca.size());
-			cardToBuy = ca.get(randomInt);
-			System.out.println(actualPlayer.getUsername() + " chooses to buy: " + cardToBuy.getName());
-			//If I choose a card
-			if(cardToBuy != null){
-				//I remove the virtual coins of the card
-				actualPlayer.decreaseVirtualCoins(cardToBuy.getCost());
-				actualPlayer.decreasePurchases();
-				table.decreaseDeckSize(cardToBuy);
-				insert(Action.BUY);
-				insert(cardToBuy);
+			System.out.println("ca size: " + ca.size());
+			int randomInt = 0;
+			if(ca.size() > 0) {
+				randomInt = gameLogic.nextInt(ca.size());
+				cardToBuy = ca.get(randomInt);
+				System.out.println(actualPlayer.getUsername() + " chooses to buy: " + cardToBuy.getName());
+				//If I choose a card
+				if(cardToBuy != null){
+					//I remove the virtual coins of the card
+					actualPlayer.decreaseVirtualCoins(cardToBuy.getCost());
+					actualPlayer.decreasePurchases();
+					table.decreaseDeckSize(cardToBuy);
+					insert(Action.BUY);
+					insert(cardToBuy);
+						
 					
-				
+				}
+			} else {
+				System.out.println("No cards can be bought, phase skipped");
+				retract($phase);
+				retract($action);
+				retract($action2);
+				retract($action3);
+				insert(Phase.CLEANUP);
 			}
+			
 		} else {
 			System.out.println(actualPlayer.getUsername() + " has no more purchases or no treasures to play");
 			retract($phase);
@@ -451,8 +466,12 @@ rule "Cleanup phase rule"
 		table.checkEndGame();
 		System.out.println("End game conditions checked");
 		retract($phase);
-		//retract($action);
-		insert(Phase.ENDTURN);
+		if(table.getSituation() != 2) {
+			//retract($action);
+			insert(Phase.ENDTURN);
+		} else {
+			insert(Phase.ENDGAME);
+		}
 		
 end
 
@@ -698,11 +717,13 @@ rule "Play Cellar card"
 		System.out.println($username+" used "+$card.getName()+".");
 		addActions($player,1);
 		//Choose a number between 0 and #CardInHand
-		int randomNumberOfCard = gameLogic.nextInt($player.getHand().size());
-		//Discard #randomNumberOfCard
-		discard($player,randomNumberOfCard);
-		//Draw #randomNumberOfCard
-		draw($player,randomNumberOfCard);
+		if($player.getHand().size() > 0) {
+			int randomNumberOfCard = gameLogic.nextInt($player.getHand().size());
+			//Discard #randomNumberOfCard
+			discard($player,randomNumberOfCard);
+			//Draw #randomNumberOfCard
+			draw($player,randomNumberOfCard);
+		}
 		
 		retract($card)
 		retract($action)
@@ -1075,29 +1096,32 @@ rule "Play Militia card"
 		$action : Action( this == Action.USE )
 		$phase : Phase( this == Phase.ACTION )
 	then
-		
+		System.out.println($opponents);
 		//If an opponent has a reaction card it is not affected by the attack
 		for(Iterator<Player> it = $opponents.iterator(); it.hasNext();) {
-			Player opp = it.next();
+			Player opp = (Player)it.next();
+			System.out.println(opp.getHand());
 			for(Card c : opp.getHand()) {
-				if(c instanceof Kingdom && c.getSubtype().equals("Reaction")) {
-					System.out.println(opp.getUsername() + " reveals " + c.getName() + " and is not affected by Bandit");
+				if(c.getName().equals("Moat")) {
+					System.out.println(opp.getUsername() + " reveals " + c.getName() + " and is not affected by Militia");
 					it.remove();
 					break;
 				}
 			}
 		}
-		
+		System.out.println("sono dopo il for per chi ha moat in militia");
 		coin($player,2);
 		for(Object player :  $opponents){
 			Player p = (Player)player;
 			
 			if(p.getHand().size() > 3){
 				discard(p, Math.abs(3-p.getHand().size()));
+			} else {
+				System.out.println(p.getUsername() + " already has 3 cards in hand");
 			}
 			
 		}
-		
+		System.out.println("sono prima dei retract in militia");
 		retract($card)
 		retract($action)
 		//To refresh the firing of Action phase rule
@@ -1232,20 +1256,31 @@ rule "Play Remodel card"
 		$action : Action( this == Action.USE )
 		$phase : Phase( this == Phase.ACTION )
 	then
-		
+		System.out.println("remodel hand size: " + $player.getHand().size());
 		if($player.getHand().size() > 0) {
-			int randomNumberOfCard = gameLogic.nextInt($player.getHand().size());
-			//Select a card to trash
+			int randomNumberOfCard = 0;
+			try {
+				randomNumberOfCard = gameLogic.nextInt($player.getHand().size());
+				//Select a card to trash
+			} catch(IllegalArgumentException e) {
+				System.out.println("hand size used as bound: " + $player.getHand().size() + ", number random: " + randomNumberOfCard);
+			}
 			Card selectedCardToTrash = $player.getHand().remove(randomNumberOfCard);
-			trashPile.add(selectedCardToTrash);
 			//Get all gainable card
 			List<Card> listOfGainableCard = table.getAllCardsThatCanBeGainedUpToAmount(selectedCardToTrash.getCost()+2);
-			//Choose the card to gain between listOfGainableCard
-			Card selectedCardToGain = listOfGainableCard.get(gameLogic.nextInt(listOfGainableCard.size()));
-			//Add to discard pile the selected card
-			$player.getDiscard().add(selectedCardToGain);
-			//Remove to deck the selected card
-			table.decreaseDeckSize(selectedCardToGain);
+			
+			if(listOfGainableCard.size() > 0) {
+				trashPile.add(selectedCardToTrash);
+				//Choose the card to gain between listOfGainableCard
+				
+				Card selectedCardToGain = listOfGainableCard.get(gameLogic.nextInt(listOfGainableCard.size()));
+				//Add to discard pile the selected card
+				$player.getDiscard().add(selectedCardToGain);
+				//Remove to deck the selected card
+				table.decreaseDeckSize(selectedCardToGain);
+			} else {
+				System.out.println("No cards can be gained");
+			}
 		} else {
 			System.out.println($username+" has not any card in his/her hand.");
 		}
@@ -1626,8 +1661,7 @@ end
 rule "End game rule"
 	salience 20
 	when
-		$situation : Table( situation == 2 )
-		$phase : Phase( this == Phase.ENDTURN )
+		$phase : Phase( this == Phase.ENDGAME )
 	then
 		System.out.println("The game is finished . . .");
 		//Sort ascendent the players (the class player implements Comparable)
@@ -1638,5 +1672,7 @@ rule "End game rule"
 		System.out.println("***RANK***");
 		for (int j = 0; j < players.size(); j++)
 			System.out.println((j+1)+"-\t"+players.get(j));
+		
+		retract($phase);
 end
 			
