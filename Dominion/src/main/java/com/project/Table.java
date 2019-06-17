@@ -14,12 +14,14 @@ import com.project.cards.curses.Curse;
 import com.project.cards.kingdoms.Bandit;
 import com.project.cards.kingdoms.Cellar;
 import com.project.cards.kingdoms.Kingdom;
+import com.project.cards.kingdoms.Laboratory;
 import com.project.cards.kingdoms.Market;
 import com.project.cards.kingdoms.Militia;
 import com.project.cards.kingdoms.Mine;
 import com.project.cards.kingdoms.Moat;
 import com.project.cards.kingdoms.Remodel;
 import com.project.cards.kingdoms.Smithy;
+import com.project.cards.kingdoms.Thief;
 import com.project.cards.kingdoms.Village;
 import com.project.cards.kingdoms.Woodcutter;
 import com.project.cards.kingdoms.Workshop;
@@ -122,7 +124,6 @@ public class Table {
 				player.addToDeck(estateDeck.remove(0));
 			player.shuffleDeck();
 			
-		
 			for (j = 0; j < 5; j++)
 				player.addToHand(player.getDeck().remove(0));
 		}

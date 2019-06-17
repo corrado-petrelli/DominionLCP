@@ -38,15 +38,21 @@ function void draw(Player p, int amount) {
 		for(int h = 0; h < deckSize; h++)
 			p.addToHand(p.getDeck().remove(0));
 		// the remaining cards are drawn after shuffling together deck and discard
-		Collections.shuffle(p.getDiscard());
-		p.getDeck().addAll(p.getDiscard());
-		p.getDiscard().clear();
+		shuffle(p);
 		for(int j = 0; j < amount-deckSize; j++) 
 			p.addToHand(p.getDeck().remove(0));
-	} else 
+		System.out.println(p.getUsername() + " drew " + amount + " cards.");
+	} else {
 		for(int j = 0; j < amount; j++) 
-		p.addToHand(p.getDeck().remove(0));
-	System.out.println(p.getUsername() + " drew " + amount + " cards.");
+			p.addToHand(p.getDeck().remove(0));
+		System.out.println(p.getUsername() + " drew " + amount + " cards.");
+	}
+}
+
+function void shuffle(Player p) {
+	Collections.shuffle(p.getDiscard());
+	p.getDeck().addAll(p.getDiscard());
+	p.getDiscard().clear();
 }
 
 //A player *p* obtain *amount* virtual coins
@@ -156,7 +162,6 @@ end
 
 
 rule "Action Phase Rule"
-	no-loop
 	//According to us we must give an order:
 	//	1 - player choose the card from the hand
 	//	2 - it Plays the card
@@ -179,7 +184,7 @@ rule "Action Phase Rule"
 				insert(Action.USE);
 				insert(kingdomCardToPlay);
 				actualPlayer.decreaseActions();
-				System.out.println(actualPlayer.getUsername() + " played " + kingdomCardToPlay.getName());
+				//System.out.println(actualPlayer.getUsername() + " played " + kingdomCardToPlay.getName());
 			} else {
 				System.out.println(actualPlayer.getUsername() + " skipped action phase");
 				actualPlayer.setActions(0);
@@ -333,6 +338,8 @@ rule "Remove all coins played"
 		//Need to reinsert because it needs to fire the rule again
 		//insert(Action.COINSNEEDTOBEGARBAGED);
 		//retract(Action.ALLCOINSPLAYED);
+		//We can't remove the USE token and the COINSNEEDTOBEGARBAGED token
+		//otherwise the rule won't fire for all the coins played before
 		insert(Action.ALLCOINSPLAYED);
 		
 		
@@ -394,9 +401,9 @@ rule "Purchase Phase rule"
 		$phase : Phase( this == Phase.PURCHASE )
 		actualPlayer : Player(  )
 		//this must be removed at the end
-		$action3 : Action( this == Action.USE )
-		//this must be removed at the end, we keep it just to make this rule fire
-		$action2 : Action( this == Action.COINSNEEDTOBEGARBAGED )
+		$prevAction1 : Action( this == Action.USE )
+		//this must be removed at the end, we keep these just to make the rule fire
+		$prevAction2 : Action( this == Action.COINSNEEDTOBEGARBAGED )
 		$action : Action( this == Action.ALLCOINSPLAYED )
 	then
 		//Retract all coins played otherwise player will buy one of them
@@ -435,8 +442,8 @@ rule "Purchase Phase rule"
 				System.out.println("No cards can be bought, phase skipped");
 				retract($phase);
 				retract($action);
-				retract($action2);
-				retract($action3);
+				retract($prevAction1);
+				retract($prevAction2);
 				insert(Phase.CLEANUP);
 			}
 			
@@ -444,8 +451,8 @@ rule "Purchase Phase rule"
 			System.out.println(actualPlayer.getUsername() + " has no more purchases or no treasures to play");
 			retract($phase);
 			retract($action);
-			retract($action2);
-			retract($action3);
+			retract($prevAction1);
+			retract($prevAction2);
 			insert(Phase.CLEANUP);
 		}
 end
@@ -888,12 +895,13 @@ rule "Play Harbinger card"
 		draw($player,1);
 		addActions($player,1);
 		// look through your discrda pile 
-		int p = gameLogic.nextInt($player.getDiscard().size());
-		Card pickFromDiscardPileAndPutOntoDeck = $player.getDiscard().get(p);
-		// you may put a card from it onto your deck
-		$player.getDiscard().remove(p);
-		$player.getDeck().add(0,pickFromDiscardPileAndPutOntoDeck);
-		
+		if($player.getDiscard().size() > 0) {
+			int p = gameLogic.nextInt($player.getDiscard().size());
+			Card pickFromDiscardPileAndPutOntoDeck = $player.getDiscard().get(p);
+			// you may put a card from it onto your deck
+			$player.getDiscard().remove(p);
+			$player.getDeck().add(0,pickFromDiscardPileAndPutOntoDeck);
+		}
 		retract($card)
 		retract($action)
 		//To refresh the firing of Action phase rule
@@ -1427,7 +1435,7 @@ end
 //You may gain any of all of thes trashed card.
 //They discard the orger revealed cards
 rule "Play Thief card"
-	when
+	when 
 		$player : Player( $username : username )
 		$opponents : List(  ) from collect ( Player( this != $player ) from players )
 		$card : Thief(  )
@@ -1445,8 +1453,8 @@ rule "Play Thief card"
 		for(Iterator<Player> it = $opponents.iterator(); it.hasNext();) {
 			Player opp = it.next();
 			for(Card c : opp.getHand()) {
-				if(c instanceof Kingdom && c.getSubtype().equals("Reaction")) {
-					System.out.println(opp.getUsername() + " reveals " + c.getName() + " and is not affected by Bandit");
+				if(c.getName().equals("Moat")) {
+					System.out.println(opp.getUsername() + " reveals " + c.getName() + " and is not affected by Thief");
 					it.remove();
 					break;
 				}
@@ -1457,41 +1465,94 @@ rule "Play Thief card"
 			List<Card> revealedCards = new ArrayList<Card>();
 			Player opp = (Player)opponent;
 			for(int i = 0; i < 2; i++) {
-				Card rc = opp.getDeck().remove(0);
+				Card rc = null;
+				System.out.println(opp.getUsername() + " deck size: " + opp.getDeck().size());
+				//If deck is empty but there are discards
+				if(opp.getDeck().size() <= 0 && opp.getDiscard().size() > 0) {
+					System.out.println("i will shuffle");
+					shuffle(opp);
+				}
+				//Player has not enough cards to reveal 
+				else if(opp.getDeck().size() <= 0) {
+					System.out.println("no shuffle i exit");
+					break;
+				}
+				System.out.println("sono uscito questo non dovrebbe stamparlo due volte");
+				rc = opp.getDeck().remove(0);
 				revealedCards.add(rc);
 				System.out.println(opp.getUsername() + " reveals " + rc.getName());
 			}
+			System.out.println(revealedCards);
+			
 			//both revealed cards are treasure and I need to choose one to trash (and maybe gain)
 			boolean trashOrTake = gameLogic.nextBoolean();
+			boolean treasureFound = false;
 			//two treasures are revealed, i select one of the two
-			if(revealedCards.get(0) instanceof Treasure && revealedCards.get(1) instanceof Treasure) {
-				boolean oneOrTwo = gameLogic.nextBoolean();
-				if(oneOrTwo) {
-					Card rtc = revealedCards.remove(0);
-					trashPile.add(rtc);
-					System.out.println($username + " decided to trash " + rtc.getName());
-					//put the other revealed card in discard pile of the opponent
-					opp.getDiscard().add(revealedCards.remove(0));
-				} else {
-					//put the other revealed card in discard pile of the opponent
-					opp.getDiscard().add(revealedCards.remove(0));
-					//DIscard the first and trash the second
-					Card rtc = revealedCards.remove(0);
-					trashPile.add(rtc);
-					System.out.println($username + " decided to trash " + rtc.getName());
-					
+			if(revealedCards.size() == 2) {
+				if(revealedCards.get(0) instanceof Treasure && revealedCards.get(1) instanceof Treasure) {
+					System.out.println("ci sono due carte ed entrambe sono tesoro");
+					treasureFound = true;
+					boolean oneOrTwo = gameLogic.nextBoolean();
+					if(oneOrTwo) {
+						Card rtc = revealedCards.remove(0);
+						trashPile.add(rtc);
+						System.out.println($username + " decided to trash " + rtc.getName());
+						//put the other revealed card in discard pile of the opponent
+						Card otrc = revealedCards.remove(0);
+						opp.getDiscard().add(otrc);
+						System.out.println(opp.getUsername() + " discards " + otrc.getName());
+					} else {
+						//put the other revealed card in discard pile of the opponent
+						Card rtc = revealedCards.remove(0);
+						System.out.println(opp.getUsername() + " discards " + rtc.getName());
+						opp.getDiscard().add(rtc);
+						//DIscard the first and trash the second
+						rtc = revealedCards.remove(0);
+						trashPile.add(rtc);
+						System.out.println($username + " decided to trash " + rtc.getName());
+						
+					}
 				}
-			//only one treasure is revealed, i trash the only one
-			} else if(revealedCards.get(0) instanceof Treasure || revealedCards.get(1) instanceof Treasure){
-				Card treasure = revealedCards.get(0) instanceof Treasure ? revealedCards.remove(0) : revealedCards.remove(1);
-				trashPile.add(treasure);
-				System.out.println($username + " decided to trash " + treasure.getName());
+				else {
+					//only one treasure is revealed, i trash the only one
+					
+						System.out.println("ci sono due carte e solo una è tesoro");
+						treasureFound = true;
+						Card treasure = null;
+						if(revealedCards.get(0) instanceof Treasure)
+							treasure = revealedCards.remove(0);
+						else
+							treasure = revealedCards.remove(1);
+						trashPile.add(treasure);
+						System.out.println($username + " decided to trash " + treasure.getName());
+				}
+			} else if(revealedCards.size() == 1) {
+				System.out.println("c'è una sola carta ed è tesoro");
+				if(revealedCards.get(0) instanceof Treasure) {
+					
+					treasureFound = true;
+					Card treasure = revealedCards.remove(0);
+					trashPile.add(treasure);
+					System.out.println($username + " decided to trash " + treasure.getName());
+				}
+			}
+			//No treasures are revealed 
+			else {
+				//Opponents simply discard the cards
+				System.out.println("Nessun tesoro, scarto le carte");
+				for(int i = 0; i < revealedCards.size(); i++) {
+					Card rc = revealedCards.remove(0);
+					opp.getDiscard().add(rc);
+					System.out.println(opp.getUsername() + " discards " + rc.getName());
+				}	
 			}
 			
-			if(!trashOrTake) {
+			
+			if(treasureFound && !trashOrTake) {
 				System.out.println($username + " decided to pick trashed card");
 				$player.getDiscard().add((Card)trashPile.remove(trashPile.size()-1));
 			}
+			
 			
 		}
 		

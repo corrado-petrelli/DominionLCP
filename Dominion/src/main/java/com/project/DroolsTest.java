@@ -1,8 +1,10 @@
 package com.project;
 
 import java.io.BufferedReader;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,9 +43,11 @@ public class DroolsTest {
 	//To input
 	public static BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
 	
+
 	
     public static final void main(String[] args) {
         try {
+        	
 	        KieServices ks = KieServices.Factory.get();
     	    KieContainer kContainer = ks.getKieClasspathContainer();
         	KieSession kSession = kContainer.newKieSession("ksession-rules");
