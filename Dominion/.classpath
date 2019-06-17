@@ -4,5 +4,6 @@
 	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="DROOLS/Drools"/>
+	<classpathentry kind="lib" path="C:/Users/Corrado/Desktop/commons-io-2.6-bin (1)/commons-io-2.6/commons-io-2.6.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

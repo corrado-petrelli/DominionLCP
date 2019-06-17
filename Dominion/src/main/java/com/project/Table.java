@@ -348,33 +348,41 @@ public class Table {
 	}
 	
 	public void checkEndGame(){
-		int count = 0;
-		if(copperDeck.isEmpty())
-			count++;
-		if(silverDeck.isEmpty())
-			count++;
-		if(goldDeck.isEmpty())
-			count++;
-		
-		if(estateDeck.isEmpty())
-			count++;
-		if(duchyDeck.isEmpty())
-			count++;
-		if(provinceDeck.isEmpty())
-			count++;
-		
-		if(curseDeck.isEmpty())
-			count++;
-		if(trashDeck.isEmpty())
-			count++;
-		
-		for (ArrayList<Kingdom> arrayOfKingdoms : kingdomDecks.values())
-		    if(arrayOfKingdoms.isEmpty())
-		    	count++;
-		
-		//THE GAME END!
-		if(count >= 3)
+		if(provinceDeck.isEmpty()){
+			System.out.println("***The province deck is empty!***");
 			situation = 2;
+		}
+		else{
+			int count = 0;
+			if(copperDeck.isEmpty())
+				count++;
+			if(silverDeck.isEmpty())
+				count++;
+			if(goldDeck.isEmpty())
+				count++;
+			
+			if(estateDeck.isEmpty())
+				count++;
+			if(duchyDeck.isEmpty())
+				count++;
+			
+			
+			if(curseDeck.isEmpty())
+				count++;
+			if(trashDeck.isEmpty())
+				count++;
+			
+			for (ArrayList<Kingdom> arrayOfKingdoms : kingdomDecks.values())
+			    if(arrayOfKingdoms.isEmpty())
+			    	count++;
+			
+			//THE GAME END!
+			if(count >= 3){
+				situation = 2;
+				System.out.println("***Three or more supply piles are empty***");
+			}
+		}
+		
 	}
 
 	public int getSituation() {

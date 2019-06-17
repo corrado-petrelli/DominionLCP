@@ -1,6 +1,7 @@
 package rules
 
 import com.project.Player;
+import com.project.Color;
 import com.project.Action;
 import com.project.Phase;
 import com.project.Table;
@@ -15,8 +16,6 @@ import java.util.*;
 global List<Card> trashPile;
 //Random logic
 global Random gameLogic;
-//Actual player if used as global variable is read only
-//global Player actualPlayer;
 //Table
 global Table table;
 //Players
@@ -35,12 +34,11 @@ global List<Player> players;
 function void draw(Player p, int amount) {
 	if(p.getDeck().size() < amount) {
 		int deckSize = p.getDeck().size();
-		for(int h = 0; h < deckSize; h++)
+		for(int h = 0; h < deckSize; h++){
 			p.addToHand(p.getDeck().remove(0));
+		}
 		// the remaining cards are drawn after shuffling together deck and discard
-		Collections.shuffle(p.getDiscard());
-		p.getDeck().addAll(p.getDiscard());
-		p.getDiscard().clear();
+		shuffle(p);
 		for(int j = 0; j < amount-deckSize; j++) 
 			p.addToHand(p.getDeck().remove(0));
 	} else 
@@ -49,16 +47,23 @@ function void draw(Player p, int amount) {
 	System.out.println(p.getUsername() + " drew " + amount + " cards.");
 }
 
+
+function void shuffle(Player p) {
+	Collections.shuffle(p.getDiscard());
+	p.getDeck().addAll(p.getDiscard());
+	p.getDiscard().clear();
+}
+
 //A player *p* obtain *amount* virtual coins
 function void coin(Player p, int amount) {
 	p.setVirtualCoins(p.getVirtualCoins()+amount);
-	System.out.println(p.getUsername() + " obtained " + amount + " coins and has a total of:" + p.getVirtualCoins());
+	System.out.println(p.getUsername() + " obtained " + amount + " coins and has a total of: " + p.getVirtualCoins());
 }
 
 //A player *p* buy a card *c*
 function void buy(Player p, Card c) {
 	p.getDiscard().add(c);
-	System.out.println(p.getUsername() + " bought " + c.getName());
+	System.out.println(p.getUsername() + Color.BLUE_BOLD+" bought " + c.getName()+Color.RESET);
 }
 
 function void gainOntoDeck(Table table, Player p, Card c) {
@@ -116,13 +121,6 @@ function void addPurchase(Player p, int amount) {
 	System.out.println(p.getUsername() + " can purchase " + amount + " more cards.");
 }
 
-/*
-function void trash(Player p, Card c) {
-	p.getHand().remove(index);
-	trashPile.add(c);
-}
-*/
-
 
 rule "Switch Turn"
 	when
@@ -130,7 +128,7 @@ rule "Switch Turn"
 		actualPlayer : Player(  )
 		
 	then
-		System.out.println(actualPlayer.getUsername() + " ENDED its turn");
+		System.out.println(actualPlayer.getUsername()+Color.PURPLE_BRIGHT+" ENDED its turn"+Color.RESET);
 		int indexActualPlayer = players.indexOf(actualPlayer);
 		//If the actual player is the last player of the list
 		if(indexActualPlayer == players.size() - 1){
@@ -138,8 +136,8 @@ rule "Switch Turn"
 		} else {
 			actualPlayer = (Player)players.get(indexActualPlayer+1);
 		}
-		System.out.println("________________________________________________");
-		System.out.println("Now it's the turn of " + actualPlayer.getUsername());
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+		System.out.println(Color.RED_BOLD+"Now it's the turn of " +Color.RESET+Color.PURPLE+ actualPlayer.getUsername()+Color.RESET);
 		//Reset the number of Actions and Purchases to the default value (1)
 		actualPlayer.setActions(1);
 		actualPlayer.setPurchases(1);
@@ -153,10 +151,7 @@ rule "Switch Turn"
 end
 
 
-
-
 rule "Action Phase Rule"
-	no-loop
 	//According to us we must give an order:
 	//	1 - player choose the card from the hand
 	//	2 - it Plays the card
@@ -167,7 +162,7 @@ rule "Action Phase Rule"
 		actualPlayer : Player(  )
 		
 	then
-		System.out.println(actualPlayer.getUsername() + " entered ACTION phase rule");
+		System.out.println(actualPlayer.getUsername() + " entered "+Color.PURPLE_BRIGHT+"ACTION phase rule"+Color.RESET);
 		System.out.println(actualPlayer.playerInfo());
 		if(actualPlayer.getActions() > 0) {
 			Card kingdomCardToPlay = actualPlayer.getPlayableKingdomCardFromHand();
@@ -179,7 +174,7 @@ rule "Action Phase Rule"
 				insert(Action.USE);
 				insert(kingdomCardToPlay);
 				actualPlayer.decreaseActions();
-				System.out.println(actualPlayer.getUsername() + " played " + kingdomCardToPlay.getName());
+				System.out.println(actualPlayer.getUsername() + Color.BLUE_BOLD+" played " + kingdomCardToPlay.getName()+Color.RESET);
 			} else {
 				System.out.println(actualPlayer.getUsername() + " skipped action phase");
 				actualPlayer.setActions(0);
@@ -226,9 +221,6 @@ rule "Play Copper card"
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		coin($player,$amount);
-		
-		//retract($card)
-		//retract($action)
 end
 
 rule "Normal Play Silver card"
@@ -243,10 +235,8 @@ rule "Normal Play Silver card"
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		coin($player,$amount);
-		
-		//retract($card)
-		//retract($action)
 end
+
 
 rule "Play Silver card after merchant"
 	salience 13
@@ -261,9 +251,6 @@ rule "Play Silver card after merchant"
 		System.out.println($username+" used "+$card.getName()+".");
 		coin($player,$amount);
 		coin($player,1);
-		
-		//retract($card)
-		//retract($action)
 		retract($token)
 end
 
@@ -278,9 +265,6 @@ rule "Play Gold card"
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		coin($player,$amount);
-		
-		//retract($card)
-		//retract($action)
 end
 
 
@@ -300,19 +284,6 @@ end
  |     | |   | |     |_   |   |  |       ||   |  | ||   | |   |___  _____| |
   |___|  |___| |_______|  |___|  |_______||___|  |_||___| |_______||_______|                                                                                               
 */
-/*
-rule "Buy Victories card"
-	when
-		$player : Player( $username : username )
-		$card : Victory(  )
-		$action : Action( this == Action.BUY )
-	then
-		buy($player,$card);
-		retract($player)
-		retract($card)
-		retract($action)
-end
-*/
 
 rule "Remove all coins played"
 	salience 12
@@ -326,13 +297,15 @@ rule "Remove all coins played"
 		$action : Action( this == Action.COINSNEEDTOBEGARBAGED )
 		
 	then
-		System.out.println("garbage collecting all the coins ... " + $coins.getName());
+		System.out.println("Garbage collecting all the coins ... " + $coins.getName());
 		retract($coins);
 		//retract($action);
 		
 		//Need to reinsert because it needs to fire the rule again
 		//insert(Action.COINSNEEDTOBEGARBAGED);
 		//retract(Action.ALLCOINSPLAYED);
+		//We can't remove the USE token and the COINSNEEDTOBEGARBAGED token
+		//otherwise the rule won't fire for all the coins played before
 		insert(Action.ALLCOINSPLAYED);
 		
 		
@@ -361,7 +334,7 @@ rule "Play all treasures in hand"
 		actualPlayer : Player(  )
 		$action : Action( this == PLAYALLCOINS )
 	then
-		System.out.println(actualPlayer.getUsername() + " is now on purchase phase");
+		System.out.println(actualPlayer.getUsername() + " is now on "+Color.PURPLE_BRIGHT+"PURCHASE phase"+Color.RESET);
 		System.out.println(actualPlayer.getUsername() + " will now play all treasures in hand");
 		int playedTreasures = 0;
 		for(Iterator<Card> it = actualPlayer.getHand().iterator(); it.hasNext(); ) {
@@ -384,8 +357,6 @@ rule "Play all treasures in hand"
 			insert(Action.COINSNEEDTOBEGARBAGED);
 			insert(Action.ALLCOINSPLAYED);
 		}
-		
-		
 end
 
 rule "Purchase Phase rule"
@@ -394,27 +365,20 @@ rule "Purchase Phase rule"
 		$phase : Phase( this == Phase.PURCHASE )
 		actualPlayer : Player(  )
 		//this must be removed at the end
-		$action3 : Action( this == Action.USE )
-		//this must be removed at the end, we keep it just to make this rule fire
-		$action2 : Action( this == Action.COINSNEEDTOBEGARBAGED )
+		$prevAction1 : Action( this == Action.USE )
+		//this must be removed at the end, we keep these just to make the rule fire
+		$prevAction2 : Action( this == Action.COINSNEEDTOBEGARBAGED )
 		$action : Action( this == Action.ALLCOINSPLAYED )
 	then
 		//Retract all coins played otherwise player will buy one of them
 		//retract($card);
 		
-		System.out.println(actualPlayer.getUsername() + " passed to ACTUAL PURCHASE phase");
+		System.out.println(actualPlayer.getUsername() + " passed to "+Color.PURPLE_BRIGHT+"ACTUAL PURCHASE phase"+Color.RESET);
 		Card cardToBuy = null;
 		
 		if(actualPlayer.getPurchases() > 0) {
-			//actualPlayer.playAllTreasureCardsInHand();
-			//Because of the merchant card, we need to play treasures
-			//inside drools instead of getting all of them played in player
-			
-			
-			
 			//Choose a card to buy randomly from the 7 data structures holding decks in table
 			List<Card> ca = table.getAllCardsThatCanBeBoughtWithAmountOfCoins(actualPlayer.getVirtualCoins());
-			System.out.println("ca size: " + ca.size());
 			int randomInt = 0;
 			if(ca.size() > 0) {
 				randomInt = gameLogic.nextInt(ca.size());
@@ -428,8 +392,6 @@ rule "Purchase Phase rule"
 					table.decreaseDeckSize(cardToBuy);
 					insert(Action.BUY);
 					insert(cardToBuy);
-						
-					
 				}
 			} else {
 				System.out.println("No cards can be bought, phase skipped");
@@ -439,13 +401,12 @@ rule "Purchase Phase rule"
 				retract($action3);
 				insert(Phase.CLEANUP);
 			}
-			
 		} else {
 			System.out.println(actualPlayer.getUsername() + " has no more purchases or no treasures to play");
 			retract($phase);
 			retract($action);
-			retract($action2);
-			retract($action3);
+			retract($prevAction1);
+			retract($prevAction2);
 			insert(Phase.CLEANUP);
 		}
 end
@@ -454,9 +415,8 @@ rule "Cleanup phase rule"
 	when
 		$phase : Phase( this == Phase.CLEANUP )
 		actualPlayer : Player(  )
-		
 	then
-		System.out.println(actualPlayer.getUsername() + " is now on CLEANUP phase");
+		System.out.println(actualPlayer.getUsername() + " is now on "+Color.PURPLE_BRIGHT+"CLEANUP phase"+Color.RESET);
 		actualPlayer.getDiscard().addAll(actualPlayer.getHand());
 		System.out.println(actualPlayer.getUsername() + " discarded the hand");
 		actualPlayer.getHand().clear();
@@ -472,9 +432,7 @@ rule "Cleanup phase rule"
 		} else {
 			insert(Phase.ENDGAME);
 		}
-		
 end
-
 
 
 /*
@@ -492,14 +450,6 @@ end
 |     |_ |   | |  _    ||   ||  || |_|   ||  |_|  ||       |
 |    _  ||   | | | |   ||   |_| ||       ||       || ||_|| |
 |___| |_||___| |_|  |__||_______||______| |_______||_|   |_|
-*/
-
-
-
-/*
---------------------------------------
-		PLAY AND BUY KINGDOMS
---------------------------------------
 */
 
 //Gain a card to your hand costing up 5 coins
@@ -527,7 +477,6 @@ rule "Play Artisan card"
 		//onto your deck means at the top of the deck, since we use remove(0) to draw, position 0 is the top
 		$player.getDeck().add(0,cardToPutInDeck);
 		$player.getHand().remove(randomInt);
-		
 		retract($card)
 		retract($action)
 		//To refresh the firing of Action phase rule
@@ -622,8 +571,6 @@ rule "Play Bandit card"
 				i++;
 			}
 		}
-		
-		
 		retract($opponents)
 		retract($card)
 		retract($action)
@@ -746,7 +693,6 @@ rule "Play Chancellor card"
 		// you have to put your deck onto your discard pile
 		$player.getDiscard().addAll($player.getDeck());
 		$player.getDeck().clear();
-		
 		retract($card)
 		retract($action)
 		//To refresh the firing of Action phase rule
@@ -763,7 +709,6 @@ rule "Play Chapel card"
 		$action : Action( this == Action.USE )
 		$phase : Phase( this == Phase.ACTION )
 	then
-		
 		System.out.println($username+" used "+$card.getName()+".");
 		// trash cards here, up to 4 from the hand
 		int amount = gameLogic.nextInt(4);
@@ -774,7 +719,6 @@ rule "Play Chapel card"
 			$player.getHand().remove(i);
 			trashPile.add(c);
 		}
-		
 		retract($card)
 		retract($action)
 		//To refresh the firing of Action phase rule
@@ -800,7 +744,6 @@ rule "Play Councilroom card"
 		for(Player opp : ((List<Player>)$opponents)) {
 			draw(opp,1);
 		}
-		
 		retract($opponents)
 		retract($card)
 		retract($action)
@@ -826,8 +769,6 @@ rule "Play Feast card"
 		List<Card> ca = table.getAllCardsThatCanBeGainedUpToAmount(5);
 		Card cardToGainIntoDiscardPile = ca.get(gameLogic.nextInt(ca.size()));
 		gainIntoDiscardPile(table,$player,cardToGainIntoDiscardPile);
-		
-		
 		retract($card)
 		retract($action)
 		//To refresh the firing of Action phase rule
@@ -849,7 +790,6 @@ rule "Play Festival card"
 		draw($player,1);
 		addPurchase($player,1);
 		coin($player,2);
-		
 		retract($card)
 		retract($action)
 		//To refresh the firing of Action phase rule
@@ -888,12 +828,13 @@ rule "Play Harbinger card"
 		draw($player,1);
 		addActions($player,1);
 		// look through your discrda pile 
-		int p = gameLogic.nextInt($player.getDiscard().size());
-		Card pickFromDiscardPileAndPutOntoDeck = $player.getDiscard().get(p);
-		// you may put a card from it onto your deck
-		$player.getDiscard().remove(p);
-		$player.getDeck().add(0,pickFromDiscardPileAndPutOntoDeck);
-		
+		if($player.getDiscard().size() > 0) {
+			int p = gameLogic.nextInt($player.getDiscard().size());
+			Card pickFromDiscardPileAndPutOntoDeck = $player.getDiscard().get(p);
+			// you may put a card from it onto your deck
+			$player.getDiscard().remove(p);
+			$player.getDeck().add(0,pickFromDiscardPileAndPutOntoDeck);
+		}
 		retract($card)
 		retract($action)
 		//To refresh the firing of Action phase rule
@@ -971,7 +912,6 @@ rule "Play Market card"
 		addActions($player,1);
 		addPurchase($player,1);
 		coin($player,1);
-		
 		retract($card)
 		retract($action)
 		//To refresh the firing of Action phase rule
@@ -1000,7 +940,6 @@ rule "Play Mine card"
 				break;
 			}
 		}
-		
 		//If I have selected a treasure from the hand
 		if(selectedTreasureToTrash != null)
 		{
@@ -1030,22 +969,7 @@ rule "Play Mine card"
 					$player.getHand().add(new Gold());
 					table.decreaseDeckSize(new Gold());
 				}
-			}
-			
-			// CORRADO IO TI VOGLIO BENE MA QUESTO PEZZO DI
-			//CODICE LO TROVO MOLTO INTRICATO
-			//if(	!table.getGoldDeck().isEmpty() && 
-			//	!(selectedTreasuresToTrash instanceof Copper)){
-			//	$player.getHand().add(table.getGoldDeck().remove(0));
-			//} else {
-			//	//Try to gain a silver else a cooper
-			//	try{
-			//		$player.getHand().add(table.getSilverDeck().remove(0));
-			//	}catch(Exception e){
-			//		$player.getHand().add(table.getCopperDeck().remove(0));
-			//	}
-			//}
-			
+			}			
 		}else{
 			System.out.println($username+" has no treasure in his/her hand.");
 		}
@@ -1073,7 +997,6 @@ rule "Play Merchant card"
 		addActions($player,1);
 		// the first time you play a Silver this turn 
 		insert(Action.PENDINGSILVER);
-		
 		retract($card)
 		retract($action)
 		//To refresh the firing of Action phase rule
@@ -1096,11 +1019,11 @@ rule "Play Militia card"
 		$action : Action( this == Action.USE )
 		$phase : Phase( this == Phase.ACTION )
 	then
-		System.out.println($opponents);
+		System.out.println("The other players: "+$opponents);
 		//If an opponent has a reaction card it is not affected by the attack
 		for(Iterator<Player> it = $opponents.iterator(); it.hasNext();) {
 			Player opp = (Player)it.next();
-			System.out.println(opp.getHand());
+			System.out.println(opp.getUsername()+"'s cards: "+opp.getHand());
 			for(Card c : opp.getHand()) {
 				if(c.getName().equals("Moat")) {
 					System.out.println(opp.getUsername() + " reveals " + c.getName() + " and is not affected by Militia");
@@ -1109,7 +1032,6 @@ rule "Play Militia card"
 				}
 			}
 		}
-		System.out.println("sono dopo il for per chi ha moat in militia");
 		coin($player,2);
 		for(Object player :  $opponents){
 			Player p = (Player)player;
@@ -1141,7 +1063,6 @@ rule "Play Workshop card"
 		$phase : Phase( this == Phase.ACTION )
 	then
 		System.out.println($username+" used "+$card.getName()+".");
-		
 		//Get all gainable card
 		List<Card> listOfGainableCard = table.getAllCardsThatCanBeGainedUpToAmount(4);
 		//Choose the card to gain between listOfGainableCard
@@ -1150,7 +1071,6 @@ rule "Play Workshop card"
 		$player.getDiscard().add(selectedCardToGain);
 		//Remove to deck the selected card
 		table.decreaseDeckSize(selectedCardToGain);
-		
 		retract($card)
 		retract($action)
 		//To refresh the firing of Action phase rule
@@ -1174,7 +1094,6 @@ rule "Play Moat card"
 		// when amother player plays an Attack card, 
 		// you can reveal it from your hand and 
 		// Attack card doesn't affect you
-		
 		retract($card)
 		retract($action)
 		//To refresh the firing of Action phase rule
@@ -1200,7 +1119,6 @@ rule "Play Moneylender card"
 				break;
 			}
 		}
-		
 		//If I have selected a treasure from the hand
 		if(selectedCopperToTrash != null)
 		{
@@ -1211,7 +1129,6 @@ rule "Play Moneylender card"
 		} else {
 			System.out.println($username+" has no copper in his/her hand.");
 		}
-		
 		retract($card)
 		retract($action)
 		//To refresh the firing of Action phase rule
@@ -1238,7 +1155,6 @@ rule "Play Poacher card"
 		// discard a card per empty supply card
 		int amount = table.getNumberOfEmptySupplyDeck();
 		discard($player,amount);
-		
 		retract($card)
 		retract($action)
 		//To refresh the firing of Action phase rule
@@ -1350,7 +1266,6 @@ rule "Play Smithy card"
 	then
 		System.out.println($username+" used "+$card.getName()+".");
 		draw($player,3);
-		
 		retract($card)
 		retract($action)
 		//To refresh the firing of Action phase rule
@@ -1427,7 +1342,7 @@ end
 //You may gain any of all of thes trashed card.
 //They discard the orger revealed cards
 rule "Play Thief card"
-	when
+	when 
 		$player : Player( $username : username )
 		$opponents : List(  ) from collect ( Player( this != $player ) from players )
 		$card : Thief(  )
@@ -1445,8 +1360,8 @@ rule "Play Thief card"
 		for(Iterator<Player> it = $opponents.iterator(); it.hasNext();) {
 			Player opp = it.next();
 			for(Card c : opp.getHand()) {
-				if(c instanceof Kingdom && c.getSubtype().equals("Reaction")) {
-					System.out.println(opp.getUsername() + " reveals " + c.getName() + " and is not affected by Bandit");
+				if(c.getName().equals("Moat")) {
+					System.out.println(opp.getUsername() + " reveals " + c.getName() + " and is not affected by Thief");
 					it.remove();
 					break;
 				}
@@ -1457,41 +1372,94 @@ rule "Play Thief card"
 			List<Card> revealedCards = new ArrayList<Card>();
 			Player opp = (Player)opponent;
 			for(int i = 0; i < 2; i++) {
-				Card rc = opp.getDeck().remove(0);
+				Card rc = null;
+				System.out.println(opp.getUsername() + " deck size: " + opp.getDeck().size());
+				//If deck is empty but there are discards
+				if(opp.getDeck().size() <= 0 && opp.getDiscard().size() > 0) {
+					System.out.println("i will shuffle");
+					shuffle(opp);
+				}
+				//Player has not enough cards to reveal 
+				else if(opp.getDeck().size() <= 0) {
+					System.out.println("no shuffle i exit");
+					break;
+				}
+				System.out.println("sono uscito questo non dovrebbe stamparlo due volte");
+				rc = opp.getDeck().remove(0);
 				revealedCards.add(rc);
 				System.out.println(opp.getUsername() + " reveals " + rc.getName());
 			}
+			System.out.println(revealedCards);
+			
 			//both revealed cards are treasure and I need to choose one to trash (and maybe gain)
 			boolean trashOrTake = gameLogic.nextBoolean();
+			boolean treasureFound = false;
 			//two treasures are revealed, i select one of the two
-			if(revealedCards.get(0) instanceof Treasure && revealedCards.get(1) instanceof Treasure) {
-				boolean oneOrTwo = gameLogic.nextBoolean();
-				if(oneOrTwo) {
-					Card rtc = revealedCards.remove(0);
-					trashPile.add(rtc);
-					System.out.println($username + " decided to trash " + rtc.getName());
-					//put the other revealed card in discard pile of the opponent
-					opp.getDiscard().add(revealedCards.remove(0));
-				} else {
-					//put the other revealed card in discard pile of the opponent
-					opp.getDiscard().add(revealedCards.remove(0));
-					//DIscard the first and trash the second
-					Card rtc = revealedCards.remove(0);
-					trashPile.add(rtc);
-					System.out.println($username + " decided to trash " + rtc.getName());
-					
+			if(revealedCards.size() == 2) {
+				if(revealedCards.get(0) instanceof Treasure && revealedCards.get(1) instanceof Treasure) {
+					System.out.println("ci sono due carte ed entrambe sono tesoro");
+					treasureFound = true;
+					boolean oneOrTwo = gameLogic.nextBoolean();
+					if(oneOrTwo) {
+						Card rtc = revealedCards.remove(0);
+						trashPile.add(rtc);
+						System.out.println($username + " decided to trash " + rtc.getName());
+						//put the other revealed card in discard pile of the opponent
+						Card otrc = revealedCards.remove(0);
+						opp.getDiscard().add(otrc);
+						System.out.println(opp.getUsername() + " discards " + otrc.getName());
+					} else {
+						//put the other revealed card in discard pile of the opponent
+						Card rtc = revealedCards.remove(0);
+						System.out.println(opp.getUsername() + " discards " + rtc.getName());
+						opp.getDiscard().add(rtc);
+						//DIscard the first and trash the second
+						rtc = revealedCards.remove(0);
+						trashPile.add(rtc);
+						System.out.println($username + " decided to trash " + rtc.getName());
+						
+					}
 				}
-			//only one treasure is revealed, i trash the only one
-			} else if(revealedCards.get(0) instanceof Treasure || revealedCards.get(1) instanceof Treasure){
-				Card treasure = revealedCards.get(0) instanceof Treasure ? revealedCards.remove(0) : revealedCards.remove(1);
-				trashPile.add(treasure);
-				System.out.println($username + " decided to trash " + treasure.getName());
+				else {
+					//only one treasure is revealed, i trash the only one
+					
+						System.out.println("ci sono due carte e solo una è tesoro");
+						treasureFound = true;
+						Card treasure = null;
+						if(revealedCards.get(0) instanceof Treasure)
+							treasure = revealedCards.remove(0);
+						else
+							treasure = revealedCards.remove(1);
+						trashPile.add(treasure);
+						System.out.println($username + " decided to trash " + treasure.getName());
+				}
+			} else if(revealedCards.size() == 1) {
+				System.out.println("c'è una sola carta ed è tesoro");
+				if(revealedCards.get(0) instanceof Treasure) {
+					
+					treasureFound = true;
+					Card treasure = revealedCards.remove(0);
+					trashPile.add(treasure);
+					System.out.println($username + " decided to trash " + treasure.getName());
+				}
+			}
+			//No treasures are revealed 
+			else {
+				//Opponents simply discard the cards
+				System.out.println("Nessun tesoro, scarto le carte");
+				for(int i = 0; i < revealedCards.size(); i++) {
+					Card rc = revealedCards.remove(0);
+					opp.getDiscard().add(rc);
+					System.out.println(opp.getUsername() + " discards " + rc.getName());
+				}	
 			}
 			
-			if(!trashOrTake) {
+			
+			if(treasureFound && !trashOrTake) {
 				System.out.println($username + " decided to pick trashed card");
 				$player.getDiscard().add((Card)trashPile.remove(trashPile.size()-1));
 			}
+			
 			
 		}
 		
@@ -1501,6 +1469,7 @@ rule "Play Thief card"
 		retract($phase)
 		insert(Phase.ACTION);
 end
+
 
 //You may play and Action card from 
 //your hand twice
@@ -1614,7 +1583,6 @@ rule "Play Witch card"
 				}
 			}
 		}
-		
 		Iterator<Player> oppos = $opponents.iterator();
 		//While there are curses to deliver to opponents
 		while(table.checkDeckSize(new Curse()) > 0) {
@@ -1626,7 +1594,6 @@ rule "Play Witch card"
 			}
 		}
 		//The opponents that are outside this while are the luckiest!
-		
 		retract($card)
 		retract($action)
 		//To refresh the firing of Action phase rule
@@ -1646,7 +1613,6 @@ rule "Play Woodcutter card"
 	then
 		addPurchase($player,1);
 		coin($player,2);
-		
 		retract($card)
 		retract($action)
 		//To refresh the firing of Action phase rule
@@ -1663,16 +1629,16 @@ rule "End game rule"
 	when
 		$phase : Phase( this == Phase.ENDGAME )
 	then
-		System.out.println("The game is finished . . .");
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+		System.out.println(Color.RED+"The game is finished . . ."+Color.RESET);
 		//Sort ascendent the players (the class player implements Comparable)
 		Collections.sort(players);
 		//Reverse the list
 		Collections.reverse(players);
 		//Print the ranking
-		System.out.println("***RANK***");
+		System.out.println(Color.BLUE_BOLD+" | R A N K"+Color.RESET);
 		for (int j = 0; j < players.size(); j++)
-			System.out.println((j+1)+"-\t"+players.get(j));
-		
+			System.out.println(Color.BLUE_BOLD+" | "+(j+1)+" - "+Color.RESET+players.get(j));
 		retract($phase);
 end
 			

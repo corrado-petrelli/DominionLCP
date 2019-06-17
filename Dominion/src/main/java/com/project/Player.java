@@ -77,6 +77,16 @@ public class Player implements Comparable<Player>{
 		return hand;
 	}
 	
+	public String getHandPrintable(){
+		StringBuilder buff = new StringBuilder();
+		buff.append("| ");
+		for(Card c : hand){
+			buff.append(c.getName());
+			buff.append(" | ");
+		}
+		return buff.toString();
+	}
+	
 	public Card getPlayableKingdomCardFromHand() {
 		Collections.shuffle(this.getHand());
 		Card c = null; int i = 0;
@@ -175,62 +185,6 @@ public class Player implements Comparable<Player>{
 		return total;
 	}
 	
-	public void buy(Card cardToBuy){
-	int budget = this.getTotalCoins();
-	int updatedBudget = 0;
-		if(cardToBuy.getCost() <= budget){
-			updatedBudget = (budget- cardToBuy.getCost());
-			this.hand.add(cardToBuy);
-			this.deck.remove(cardToBuy);
-
-			/*
-			 * TODO
-			 * Check if cardToBuy cost > player's coin
-			 * move the card from the common deck to the player's deck
-			 */
-		}
-		else
-		{
-     System.out.println("The card" + cardToBuy + "is to expensive");	
-     System.out.println("Your budget is :" + budget);
-     System.out.println("Your cards are :"+ hand);
-     
-}
-		this.deck.remove(cardToBuy);
-		// la carta deve essere aggiunta ad deck comune 
-		System.out.println("You have bought the"+ cardToBuy + "card!");	
-		System.out.println("Your new budget is"+ updatedBudget);	
-	}
-	
-	public void useCard(Kingdom kingdomToUse, List<Player> playersToAttack)
-	{
-		/*
-		 * TODO
-		 * 
-		 * 		NB: 
-		 * 			if playersToAttack == null -> it's a card that has not effect to the other players
-		 * 			if playersToAttack has only one person -> the player attack only 1 person
-		 * 			if playerToAttack has 2 or more player -> the player attack more player
-		 */
-	}
-	
-	public void discardCard(Card cardToDiscard){
-		if(this.hand.contains(cardToDiscard)){
-			this.discard.add(cardToDiscard);
-			this.hand.remove(cardToDiscard);
-			/*
-			 * TODO
-			 * 
-			 * 
-			 * I must move the cardToDiscard (check if I take this card in my hand)
-			 * to the discarded deck.
-			 */
-		}
-		else{
-           System.out.println("The card" + cardToDiscard + " is non in your hand!");
-		}
-	}
-	
 	
 	@Override
 	public int compareTo(Player o) {
@@ -248,7 +202,11 @@ public class Player implements Comparable<Player>{
 	}
 	
 	public String playerInfo() {
-		return getUsername() + " hand: " + getHand() + "\ndeck size: " + getDeck().size() + "\ndiscard size: "+getDiscard().size();
+		return 
+				getUsername() + " situation: " + "\n"+
+				"\tHand: "+getHandPrintable() + "\n"+
+				"\tDeck size: " + getDeck().size() + "\n"+
+				"\tDiscard size: "+getDiscard().size();
 	}
 	
 	public Copper getCopperCard(Table table) {
